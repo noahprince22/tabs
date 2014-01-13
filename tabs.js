@@ -21,32 +21,26 @@ if (Meteor.isClient) {
     });
   });
 
-  function setCheckbox(e){
-    element = $(e.target).parent().find("input[type='checkbox']")
-    console.log(element);
+  Template.user.events = {
+    'click': function(e){
+      element = $(e.target).closest("[name='user']").find("input[type='checkbox']")
+
       if($(element).prop("checked"))
 	$(element).prop("checked",false);
       else $(element).prop("checked",true);
       
       $("[name='drink']").removeClass("active");
 
-    $(element).click(function(e) {
-      e.stopPropagation();
-    });
-  }
-  Template.user.events = {
-    'click': function(e){
-      setCheckbox(e);
+      $(element).click(function(e) {
+	e.stopPropagation();
+      });
+
       // if( !$(e.target).find("input[type='checkbox']") )
       // 	element = $(e.target).parent().find("input[type='checkbox']")
       // else
 
-    },
-    
-    'click div':  function(e){
-      console.log("I FUCKING SUCK");
-      setCheckbox(e);
     }
+    
   };
   // $("[name='price']").keypress(function(event) {
   //         console("HIII SHITHEAD");
@@ -58,8 +52,7 @@ if (Meteor.isClient) {
   function addDrinks(checkedElements,drinkId){
     $.each(checkedElements,function(index,element){
       var userId = $(element).attr("user_id");
-      console.log(userId);
-      console.log(drinkId);
+
       // var user = Users.find(user_id).fetch("user_name")[0]["something"] = "assfuck";
       // Go through an array of drinks, each drink is a hash. Each drink hash
       // has a number of drinks purchases, a day that they were purchased,
