@@ -1,0 +1,70 @@
+
+  <head>
+    <title>New Page</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+  </head>
+  
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <table class="table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>First Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <input type="checkbox">
+              </td>
+              <td>Michael</td>
+            </tr>
+            <tr>
+              <td>
+                <input type="checkbox">
+              </td>
+              <td>Steve</td>
+            </tr>
+            <tr>
+              <td nowrap="nowrap" colspan="2">
+                <input autocomplete="off" class="form-control" id="field1" name="prof1" type="text" placeholder="Type a name here" data-provide="typeahead" data-items="8" data-source="[" aardvark ","beatlejuice ","capricorn ","deathmaul ","epic "]">
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-md-7">
+        <div class="list-group">
+	  <thead>
+            <label class="control-label">Pick Your Poison</label>
+	  </thead>
+          <ul class="list-group-item">
+            <div style="width:300px;float:left">
+              <label>FRATTY NATTY</label>
+            </div>
+            <div>$0.25
+            </div>
+          </ul>
+	  
+	  <template name="drink">
+	    <form id="drink form">
+              <div style="float:left;width:469px;">
+                <input type="text" name="name" class="form-control" placeholder="Drink Name">
+              </div>
+              <div style="float:right;">
+                <input type="text" name="price" class="form-control" placeholder="Price">
+              </div>
+            </form>
+          </template>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
