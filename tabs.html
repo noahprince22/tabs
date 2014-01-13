@@ -23,7 +23,7 @@
               <td>
                 <input type="checkbox">
               </td>
-              <td>Michael</td>
+              <td> Michael</td> 
             </tr>
             <tr>
               <td>
@@ -48,6 +48,7 @@
    	  {{>drink}}
 	  
 	  {{>drink_form}}
+	  <button id="delete_button"> Delete </button>
         </div>
       </div>
     </div>
@@ -66,7 +67,7 @@
 	  
 	  <template name="drink">
 	    {{#each drinks}}
-	    <ul class="btn list-group-item" name="drink" >
+	    <ul class="btn list-group-item" name="drink" drink_id={{_id}}>
               <div style="width:300px;float:left">
 		<label>{{drink_name}}</label>
               </div>

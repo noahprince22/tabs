@@ -20,7 +20,13 @@ if (Meteor.isClient) {
   };
   $(function () {
     $("#delete_button").click( function(){ 
-      
+      $.each($("[name='drink']"),function(index,element){
+	if($(element).hasClass("active")){
+	  var id = $(element).attr("drink_id");
+	  Drinks.remove(id);
+	}  
+      });
+      $(this).attr("drink_id")
     });
   });
 
