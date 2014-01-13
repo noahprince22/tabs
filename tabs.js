@@ -7,27 +7,47 @@ if (Meteor.isClient) {
   Meteor.subscribe( 'drinks' );
 
   $(function () {
-    $("#delete_button").click( function(){ 
-      $.each($("[name='drink']"),function(index,element){
-	if($(element).hasClass("active")){
-	  var id = $(element).attr("drink_id");
-	  Drinks.remove(id);
-	}  
-      });
+    
+    $("#delete_button").click( function(){
+      var retVal = confirm("Do you want to continue? Shit gon get deleted. Don't press OK unless you're sober");
+      if( retVal == true ){
+
+	$.each($("[name='drink']"),function(index,element){
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("drink_id");
+	    Drinks.remove(id);
+	  }
+	});
+
+	$.each($("[name='user']"),function(index,element){
+	  if ( $(element).find("input[type='checkbox']").prop("checked") ){
+	    var id = $(element).attr("user_id");
+	    Users.remove(id);
+	  }  
+	});
+
+	return true;
+      }else{
+	return false;
+      }
+   
     });
     
-    $("#new_pregame").click( function(e){
-      day = new Date()
-    });
   });
 
   Template.user.events = {
     'click': function(e){
       element = $(e.target).closest("[name='user']").find("input[type='checkbox']")
+      var userId = $(e.target).closest("[name='user']").attr("user_id");
+      var checked = Users.find(userId).fetch()[0]["checked"]
+      var checkedBool = checked ==="checked"
 
-      if($(element).prop("checked"))
-	$(element).prop("checked",false);
-      else $(element).prop("checked",true);
+      if(checkedBool)
+	Users.update(userId,{$set: {checked: ""}});
+      else
+	Users.update(userId,{$set: {checked: "checked"}});
+
+      $(element).prop("checked",!checkedBool);
       
       $("[name='drink']").removeClass("active");
 
@@ -35,20 +55,12 @@ if (Meteor.isClient) {
 	e.stopPropagation();
       });
 
-      // if( !$(e.target).find("input[type='checkbox']") )
-      // 	element = $(e.target).parent().find("input[type='checkbox']")
-      // else
+
 
     }
     
   };
-  // $("[name='price']").keypress(function(event) {
-  //         console("HIII SHITHEAD");
-  //   if (event.which == 13) {
-  //     event.preventDefault();
-  //     $("#drink_form").submit();
-  //   }
-  // });
+
   function addDrinks(checkedElements,drinkId){
     $.each(checkedElements,function(index,element){
       var userId = $(element).attr("user_id");
@@ -59,34 +71,47 @@ if (Meteor.isClient) {
       // the drink name, the drink id, and the drink price.
       var drink_found = false; 
       var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
-      var drinks = Users.find(userId).fetch()[0]["drinks"];
-      if(!drinks) drinks = [];
-      $.each(drinks,function(index,drink){
-	if( drink ) {
-	  if( !drink["day"] ) drink["day"] = new Date();
-	  if( !day ) day = new Date();
-	  
-	  var sameDay = drink["day"].getTime() === day.getTime(); 
-	  var sameName = drink["name"] === drinkName;
-	  var sameId = drink["drink_id"] === drinkId;
-	  
-	  if( sameDay && sameName && sameId ) {
-	    drink["number"] = parseFloat(drink["number"])+1;
-	    drink_found = true;
+      var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
+
+      var user = Users.find(userId).fetch()[0]
+      var drinks = user["drinks"];
+
+      var userName = user["user_name"];
+      var newCredit = parseFloat(user["credit"])-parseFloat(drinkPrice);
+      if( newCredit < 0 ) alert("Hey "+userName+" you fucking deadbeat, you're out of credit. Also, you're a cocksucker");
+      else{
+	if(!drinks) drinks = [];
+	$.each(drinks,function(index,drink){
+	  if( drink ) {
+	    if( !drink["day"] ) drink["day"] = new Date();
+	    if( !day ) day = new Date();
+	    
+	    var sameDay = drink["day"].getDay() === day.getDay(); 
+	    var sameName = drink["name"] === drinkName;
+	    var sameId = drink["drink_id"] === drinkId;
+	    
+	    if( sameDay && sameName && sameId ) {
+	      drink["number"] = parseFloat(drink["number"])+1;
+	      drink_found = true;
+	    }
 	  }
+	});
+	if(!drink_found){
+	  var data = {
+	    'day': day,
+	    'name': drinkName,
+	    'drink_id': drinkId,
+	    'number': 1,
+	    'price': drinkPrice
+	  }
+	  drinks.push(data);
 	}
-      });
-      if(!drink_found){
-	var data = {
-	  'day': day,
-	  'name': drinkName,
-	  'drink_id': drinkId,
-	  'number': 1
-	}
-	drinks.push(data);
+
+	Users.update(userId,{$set: {drinks: drinks}});
+	Users.update(userId,{$inc: {credit: -drinkPrice}});
+	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
+	console.log(Users.find(userId).fetch()[0]);
       }
-      console.log(drinks);
-      Users.update(userId,{$set: {drinks: drinks}});
       // Users.update(user);
       // console.log(user);
     });
@@ -126,7 +151,7 @@ if (Meteor.isClient) {
       var data = {
 	drink_name: drink_name.value,
 	price: price.value,
-	timestamp: new Date()
+	timestamp: new Date().getTime()
       };
       priceFloat = parseFloat(data['price']);
       console.log();
@@ -152,10 +177,12 @@ if (Meteor.isClient) {
       // XXX Do form validation
       var data = {
 	user_name: user_name.value,
-	timestamp: new Date()
+	timestamp: new Date(),
+	credit: 0,
+	checked: ""
       };
 
-      if (user_name == "")
+      if (user_name.value === "")
 	alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
       else Users.insert(data);
 
@@ -167,7 +194,34 @@ if (Meteor.isClient) {
     return Users.find({}, {sort: {user_name: 1}});
   };
 
-  
+  Template.drink_table.users = function() {
+    var userElement = $("[name='user']")
+    // var ids = [];
+    // if ( $(userElement).find("[input='checkbox']").prop("checked") ){
+    //   ids.push( $(element).attr("user_id") ) 
+    // }
+    return Users.find({checked: "checked"}, {sort: {user_name: 1}});
+  };
+
+  Template.add_cash.events({'keypress #add_cash' : function(event, template) {
+    if(event.which === 13){
+      event.preventDefault();
+
+      var value = parseFloat(template.find("#add_cash").value);
+      if( isNaN(value) ) {
+	alert("You're a cocksucker, put a number in");
+      }else{
+	users = Users.find({checked: "checked"}).fetch();
+	$.each(users,function(index,user){
+	  Users.update(user["_id"],{$inc: {credit: value}});
+	});
+	
+      }
+      
+    }
+    
+  }});
+
 }
 
 // code to run on server at startup

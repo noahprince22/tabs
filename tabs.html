@@ -8,6 +8,7 @@
   </head>
   
 <body>
+ {{>add_cash}}
   <div class="container">
     <div class="row">
       <div class="col-md-4">
@@ -29,8 +30,74 @@
       </div>
     </div>
   </div>
-  <button class="btn" id="new_pregame"> New Pregame Faggot? </button>
+
+    <table class="table">
+      <tr>
+        <td>
+          <label>Name</label>
+        </td>
+        <td>
+          <label>Credits</label>
+        </td>
+        <td>
+          <label>Drinks</label>
+        </td>
+      </tr>
+      <tbody>
+      {{>drink_table}}
+      </tbody>
+    </table>
+
 </body>
+
+<template name="drink_table" >
+      {{#each users}}
+        <tr>
+          <td>
+            {{user_name}}
+          </td>
+          <td>
+	    {{credit}}
+          </td>
+          <td>
+            <table class="table" border="1" cellpadding="1" style="width:300px;">
+            <tr>
+              <td>
+                <label>Drink Name</label>
+              </td>
+              <td>
+                <label>Number</label>
+              </td>
+              <td>
+                <label>Price</label>
+              </td>
+              <td>
+                <label>Date</label>
+              </td>
+            </tr>
+            <tbody>
+	      {{#each drinks}}
+              <tr>
+                <td>
+                  {{name}}
+                </td>
+                <td>
+                  {{number}}
+                </td>
+                <td>
+                  {{price}}
+                </td>
+                <td>
+                  {{day}}
+                </td>
+              </tr>
+	      {{/each}}
+            </tbody>
+          </table>
+          </td>
+        </tr>
+	{{/each}}
+</template>
 	  <template name="drink_form">
 	    <form id="drink_form">
               <div style="float:left;width:469px;">
@@ -46,7 +113,7 @@
 	    {{#each drinks}}
 	    <ul class="btn list-group-item" name="drink" drink_id={{_id}}>
               <div style="width:300px;float:left">
-		<label>{{drink_name}}</label>
+		{{drink_name}}
               </div>
               <div>${{price}}
               </div>
@@ -66,11 +133,15 @@
 	    {{#each users}}
 	    <ul style="height:40px;" class="btn list-group-item" name="user" user_id={{_id}}>
               <div style="float:left;">
-		<input type="checkbox"/>
+		<input type="checkbox" {{checked}} />
               </div>
 	      <div>{{user_name}}
               </div>
 
             </ul>
 	    {{/each}}
+	  </template>
+
+	  <template name="add_cash">
+	    <input type="text" id="add_cash"> </input>
 	  </template>
