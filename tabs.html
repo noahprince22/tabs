@@ -11,33 +11,9 @@
   <div class="container">
     <div class="row">
       <div class="col-md-4">
-        <table class="table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>First Name</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-                <input type="checkbox">
-              </td>
-              <td> Michael</td> 
-            </tr>
-            <tr>
-              <td>
-                <input type="checkbox">
-              </td>
-              <td>Steve</td>
-            </tr>
-            <tr>
-              <td nowrap="nowrap" colspan="2">
-                <input autocomplete="off" class="form-control" id="field1" name="prof1" type="text" placeholder="Type a name here" data-provide="typeahead" data-items="8" data-source="[" aardvark ","beatlejuice ","capricorn ","deathmaul ","epic "]">
-              </td>
-            </tr>
-          </tbody>
-        </table>
+	<label class="control-label">Name</label>
+	{{>user}}
+	{{>user_form}}
       </div>
       <div class="col-md-7">
         <div class="list-group">
@@ -53,6 +29,7 @@
       </div>
     </div>
   </div>
+  <button class="btn" id="new_pregame"> New Pregame Faggot? </button>
 </body>
 	  <template name="drink_form">
 	    <form id="drink_form">
@@ -73,6 +50,27 @@
               </div>
               <div>${{price}}
               </div>
+            </ul>
+	    {{/each}}
+	  </template>
+
+
+	  <template name="user_form">
+	    <form id="user_form">
+	      <input autocomplete="off" class="form-control" name="user-name" type="text" placeholder="Type a name here" data-provide="typeahead" data-items="8" data-source="[" aardvark ","beatlejuice ","capricorn ","deathmaul ","epic "]">
+	      </input>
+	    </form>
+	  </template>
+	  
+	  <template name="user">
+	    {{#each users}}
+	    <ul style="height:40px;" class="btn list-group-item" name="user" user_id={{_id}}>
+              <div style="float:left;">
+		<input type="checkbox"/>
+              </div>
+	      <div>{{user_name}}
+              </div>
+
             </ul>
 	    {{/each}}
 	  </template>
