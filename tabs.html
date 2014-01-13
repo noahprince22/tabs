@@ -44,27 +44,34 @@
 	  <thead>
             <label class="control-label">Pick Your Poison</label>
 	  </thead>
-          <ul class="list-group-item">
-            <div style="width:300px;float:left">
-              <label>FRATTY NATTY</label>
-            </div>
-            <div>$0.25
-            </div>
-          </ul>
 	  
-	  <template name="drink">
-	    <form id="drink form">
+   	  {{>drink}}
+	  
+	  {{>drink_form}}
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+	  <template name="drink_form">
+	    <form id="drink_form">
               <div style="float:left;width:469px;">
-                <input type="text" name="name" class="form-control" placeholder="Drink Name">
+                <input type="text" name="drink_name" class="form-control" placeholder="Drink Name">
               </div>
               <div style="float:right;">
                 <input type="text" name="price" class="form-control" placeholder="Price">
               </div>
             </form>
           </template>
-
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
+	  
+	  <template name="drink">
+	    {{#each drinks}}
+	    <ul class="btn list-group-item" name="drink" >
+              <div style="width:300px;float:left">
+		<label>{{drink_name}}</label>
+              </div>
+              <div>${{price}}
+              </div>
+            </ul>
+	    {{/each}}
+	  </template>

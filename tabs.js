@@ -1,25 +1,56 @@
+//both client and server
+Drinks = new Meteor.Collection("drinks");
+Users = new Meteor.Collection("users");
 if (Meteor.isClient) {
   Meteor.subscribe( 'users' );
   Meteor.subscribe( 'drinks' );
+  
+  // $("[name='price']").keypress(function(event) {
+  //         console("HIII SHITHEAD");
+  //   if (event.which == 13) {
+  //     event.preventDefault();
+  //     $("#drink_form").submit();
+  //   }
+  // });
+  Template.drink.events = {
+    'click [name="drink"]' : function(e){
+      $(e.target).parent().toggleClass("active");
+      console.log("tits");
+    }
+  };
+  $(function () {
+    $("#delete_button").click( function(){ 
+      
+    });
+  });
 
-  Template.drink.events({'submit form' : function(event, template) {
-    event.preventDefault();
+ 
+  Template.drink_form.events({'keypress #drink_form' : function(event, template) {
+    if(event.which === 13){
+      event.preventDefault();
+      price = template.find("input[name='price']");
+      drink_name = template.find("input[name='drink_name']");
 
-    name = template.find("input[name=name]");
-    price = template.find("input[name=price]");
-
-    // XXX Do form validation
-
-    var data = {
-      name: name.value,
-      price: price.value,
-    };
-
-    name.value="";
-    price.value="0";
-
-    Drinks.insert(data, function(err) { alert('bat data') });
+      // XXX Do form validation
+      var data = {
+	drink_name: drink_name.value,
+	price: price.value,
+	timestamp: new Date()
+      };
+      priceFloat = parseFloat(data['price']);
+      console.log(priceFloat);
+     
+      drink_name.value="";
+      price.value="";
+      if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100)
+	alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
+      else Drinks.insert(data);
+    }
   }});
+
+  Template.drink.drinks = function() {
+    return Drinks.find({}, {sort: {timestamp: -1, drink_name: 1}});
+  }
   
 }
 
