@@ -8,6 +8,8 @@
   </head>
   
 <body>
+  <button class="pull-right" id="delete_button"> Delete </button>
+  <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
  {{>add_cash}}
   <div class="container">
     <div class="row">
@@ -25,7 +27,6 @@
    	  {{>drink}}
 	  
 	  {{>drink_form}}
-	  <button id="delete_button"> Delete </button>
         </div>
       </div>
     </div>
@@ -112,7 +113,7 @@
 	  
 	  <template name="drink">
 	    {{#each drinks}}
-	      <button class="" name="drink" drink_id={{_id}}>
+	      <button name="drink" drink_id={{_id}}>
 		<div class="pull-left">
 		  {{drink_name}}
 		</div>
@@ -132,10 +133,7 @@
 	  
 	  <template name="user">
 	    {{#each users}}
-	    <button name="user" user_id={{_id}}>
-              <div class="pull-left">
-		<input type="checkbox" class="pull-left"{{checked}} />
-              </div>
+	    <button name="user" class="{{active}}" user_id="{{_id}}">
 	      <div >{{user_name}}
               </div>
 

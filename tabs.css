@@ -10,10 +10,6 @@ body *{
     color: blue;
 }
 
-.active {
-    background-color:pink;
-}
-
 .list-group-item {
     background-color:none;
     border-color:#FD5700;
@@ -24,6 +20,25 @@ body *{
     height:40px;
     background-color:#FD7C39;
     font-size:120%;
+}
+
+button:hover{
+    background-color:#FFAC69;
+}
+
+button:active{
+    background-color:blue;
+}
+button:active div{
+	color:#FD7C39;
+}
+
+button.active{
+    background-color:#FFAC69;
+}
+
+button.active div{
+    background-color:#FFAC69;
 }
 
 button {
@@ -39,7 +54,7 @@ button {
 }
 
 button div{
-    background-color:#FD7C39;
+    background-color:transparent;
     font-size:120%;
 }
 
@@ -91,3 +106,25 @@ table {
 }
 
 
+#delete_button:hover{
+    opacity:1;
+    background-color:red;
+}
+
+#delete_button{
+    opacity:0;
+    color:none;
+    width:100px;
+}
+
+.madhu:active{
+    opacity:1;
+}
+
+.madhu{
+    position:fixed;
+    width:10%;
+    opacity:0;
+    bottom:2px;
+    right:2px;
+}

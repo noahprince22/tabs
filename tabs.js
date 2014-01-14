@@ -20,10 +20,10 @@ if (Meteor.isClient) {
 	});
 
 	$.each($("[name='user']"),function(index,element){
-	  if ( $(element).find("input[type='checkbox']").prop("checked") ){
-	    var id = $(element).attr("user_id");
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("user_id");	   
 	    Users.remove(id);
-	  }  
+	  }
 	});
 
 	return true;
@@ -37,32 +37,31 @@ if (Meteor.isClient) {
 
   Template.user.events = {
     'click': function(e){
-      element = $(e.target).closest("[name='user']").find("input[type='checkbox']")
+      element = $(e.target).closest("[name='user']")
       var userId = $(e.target).closest("[name='user']").attr("user_id");
-      var checked = Users.find(userId).fetch()[0]["checked"]
-      var checkedBool = checked ==="checked"
+      var active = Users.find(userId).fetch()[0]["active"];
+      var activeBool = active ==="active";
 
-      if(checkedBool)
-	Users.update(userId,{$set: {checked: ""}});
+      if(activeBool){
+	var thing = Users.update(userId,{$set: {active: ""}});
+      }
       else
-	Users.update(userId,{$set: {checked: "checked"}});
+	Users.update(userId,{$set: {active: "active"}});
 
-      $(element).prop("checked",!checkedBool);
+      $(element).toggleClass("active")
       
       $("[name='drink']").removeClass("active");
 
       $(element).click(function(e) {
 	e.stopPropagation();
       });
-
-
-
+     
     }
     
   };
 
-  function addDrinks(checkedElements,drinkId){
-    $.each(checkedElements,function(index,element){
+  function addDrinks(activeElements,drinkId){
+    $.each(activeElements,function(index,element){
       var userId = $(element).attr("user_id");
 
       // var user = Users.find(user_id).fetch("user_name")[0]["something"] = "assfuck";
@@ -73,7 +72,7 @@ if (Meteor.isClient) {
       var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
       var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
 
-      var user = Users.find(userId).fetch()[0]
+      var user = Users.find(userId).fetch()[0];
       var drinks = user["drinks"];
 
       var userName = user["user_name"];
@@ -111,7 +110,7 @@ if (Meteor.isClient) {
 	Users.update(userId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
       }
-      Users.update(userId,{$set: {checked: ""}});
+      Users.update(userId,{$set: {active: ""}});
       // Users.update(user);
       // console.log(user);
     });
@@ -120,23 +119,20 @@ if (Meteor.isClient) {
   Template.drink.events = {
     'click [name="drink"]' : function(e){
       $(e.target).closest("[name='drink']").toggleClass("active");
-      var checked = false
       var elements = $("[name='user']")
-      var checkedElements = [];
-      $.each(elements,function(index,element){
-	if ( $(element).find("[type='checkbox']").prop("checked") ){
-	  checked=true;
-	  checkedElements.push( element )
-	}
-	
+
+      var activeElements = [];
+      users = Users.find({active: "active"}).fetch();
+      $.each(users,function(index,user){
+	activeElements.push($("[user_id='"+user["_id"]+"']"));
       });
       
-      console.log(checkedElements);
-      if(checked){
+      console.log(activeElements);
+      if(activeElements.length > 0){
 	$(e.target).closest("[name='drink']").toggleClass("active");
 	var drinkId = $(e.target).closest("[name='drink']").attr("drink_id");
 	console.log(drinkId);
-	addDrinks(checkedElements,drinkId);
+	addDrinks(activeElements,drinkId);
       }
     }
   };
@@ -180,7 +176,7 @@ if (Meteor.isClient) {
 	user_name: user_name.value,
 	timestamp: new Date(),
 	credit: 0,
-	checked: ""
+	active: ""
       };
 
       if (user_name.value === "")
@@ -201,7 +197,7 @@ if (Meteor.isClient) {
     // if ( $(userElement).find("[input='checkbox']").prop("checked") ){
     //   ids.push( $(element).attr("user_id") ) 
     // }
-    return Users.find({checked: "checked"}, {sort: {user_name: 1}});
+    return Users.find({active: "active"}, {sort: {user_name: 1}});
   };
 
   Template.add_cash.events({'keypress #add_cash' : function(event, template) {
@@ -212,7 +208,7 @@ if (Meteor.isClient) {
       if( isNaN(value) ) {
 	alert("You're a cocksucker, put a number in");
       }else{
-	users = Users.find({checked: "checked"}).fetch();
+	users = Users.find({active: "active"}).fetch();
 	$.each(users,function(index,user){
 	  Users.update(user["_id"],{$inc: {credit: value}});
 	});
