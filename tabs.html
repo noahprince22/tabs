@@ -30,8 +30,8 @@
       </div>
     </div>
   </div>
-
-    <table class="table">
+  <div class="container">
+    <table class="table" border="1" cellpadding="1">
       <tr>
         <td>
           <label>Name</label>
@@ -47,7 +47,7 @@
       {{>drink_table}}
       </tbody>
     </table>
-
+  </div>
 </body>
 
 <template name="drink_table" >
@@ -57,13 +57,13 @@
             {{user_name}}
           </td>
           <td>
-	    {{credit}}
+	    {{ credit }}
           </td>
           <td>
-            <table class="table" border="1" cellpadding="1" style="width:300px;">
+            <table class="table drink-table" border="1" cellpadding="1">
             <tr>
               <td>
-                <label>Drink Name</label>
+                <label> Drink Name</label>
               </td>
               <td>
                 <label>Number</label>
@@ -98,12 +98,13 @@
         </tr>
 	{{/each}}
 </template>
+
 	  <template name="drink_form">
 	    <form id="drink_form">
-              <div style="float:left;width:469px;">
+              <div>
                 <input type="text" name="drink_name" class="form-control" placeholder="Drink Name">
               </div>
-              <div style="float:right;">
+              <div style="float:right;width:30%;">
                 <input type="text" name="price" class="form-control" placeholder="Price">
               </div>
             </form>
@@ -111,13 +112,13 @@
 	  
 	  <template name="drink">
 	    {{#each drinks}}
-	    <ul class="btn list-group-item" name="drink" drink_id={{_id}}>
-              <div style="width:300px;float:left">
-		{{drink_name}}
-              </div>
-              <div>${{price}}
-              </div>
-            </ul>
+	      <button class="" name="drink" drink_id={{_id}}>
+		<div class="pull-left">
+		  {{drink_name}}
+		</div>
+		<div class="pull-right">${{price}}
+		</div>
+	      </button>
 	    {{/each}}
 	  </template>
 
@@ -131,14 +132,14 @@
 	  
 	  <template name="user">
 	    {{#each users}}
-	    <ul style="height:40px;" class="btn list-group-item" name="user" user_id={{_id}}>
-              <div style="float:left;">
-		<input type="checkbox" {{checked}} />
+	    <button name="user" user_id={{_id}}>
+              <div class="pull-left">
+		<input type="checkbox" class="pull-left"{{checked}} />
               </div>
-	      <div>{{user_name}}
+	      <div >{{user_name}}
               </div>
 
-            </ul>
+            </button>
 	    {{/each}}
 	  </template>
 

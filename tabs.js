@@ -110,8 +110,8 @@ if (Meteor.isClient) {
 	Users.update(userId,{$set: {drinks: drinks}});
 	Users.update(userId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
-	console.log(Users.find(userId).fetch()[0]);
       }
+      Users.update(userId,{$set: {checked: ""}});
       // Users.update(user);
       // console.log(user);
     });
@@ -148,12 +148,13 @@ if (Meteor.isClient) {
       drink_name = template.find("input[name='drink_name']");
 
       // XXX Do form validation
+      priceFloat = parseFloat(price.value).toFixed(2);
       var data = {
 	drink_name: drink_name.value,
-	price: price.value,
+	price: priceFloat,
 	timestamp: new Date().getTime()
       };
-      priceFloat = parseFloat(data['price']);
+
       console.log();
       drinkNameExists = Drinks.find({drink_name: drink_name.value}).fetch().length > 0
       if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100 || drinkNameExists)
@@ -206,8 +207,8 @@ if (Meteor.isClient) {
   Template.add_cash.events({'keypress #add_cash' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
-
-      var value = parseFloat(template.find("#add_cash").value);
+      credit = template.find("#add_cash")
+      var value = parseFloat(parseFloat(credit.value).toFixed(2));
       if( isNaN(value) ) {
 	alert("You're a cocksucker, put a number in");
       }else{
@@ -217,6 +218,7 @@ if (Meteor.isClient) {
 	});
 	
       }
+      credit.value = "";
       
     }
     

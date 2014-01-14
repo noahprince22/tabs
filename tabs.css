@@ -1,10 +1,93 @@
-/* CSS declarations go here */
-.trash { color:rgb(209, 91, 71); }
-.flag { color:rgb(248, 148, 6); }
-.panel-body { padding:0px; }
-.panel-footer .pagination { margin: 0; }
-.panel .glyphicon,.list-group-item .glyphicon { margin-right:5px; }
-.panel-body .radio, .checkbox { display:inline-block;margin:0px; }
-.panel-body input[type=checkbox]:checked + label { text-decoration: line-through;color: rgb(128, 144, 160); }
-.list-group-item:hover, a.list-group-item:focus {text-decoration: none;background-color: rgb(245, 245, 245);}
-.list-group { margin-bottom:0px; }
+body{
+    background-image:url('http://snowbrains.com/wp-content/uploads/2013/09/Why-Beer-Is-Good-For-You.jpg');
+    background-size:100%;
+    background-repeat:no-repeat;
+}
+
+body *{
+    background-color:#FD5700;
+    /* border-color:#FD5700; */
+    color: blue;
+}
+
+.active {
+    background-color:pink;
+}
+
+.list-group-item {
+    background-color:none;
+    border-color:#FD5700;
+    color:none;
+}
+.panel-body {
+    width:100%;
+    height:40px;
+    background-color:#FD7C39;
+    font-size:120%;
+}
+
+button {
+    width:100%;
+    height:40px;
+    background-color:#FD7C39;
+    font-size:120%;
+    -webkit-border-radius: 60;
+    -moz-border-radius: 60;
+    border-radius: 30px;
+    font-family: Arial;
+    border: solid #1f628d 2px;
+}
+
+button div{
+    background-color:#FD7C39;
+    font-size:120%;
+}
+
+table {
+    width:100%;
+}
+
+.btn.panel div{
+    width:50%;
+    float:left;
+    font-size:120%;
+}
+
+#drink_form div{
+    float:left;
+    width:70%;
+    /* background-color:#FD7C39; */
+    font-size:120%;
+}
+
+#drink_form div input{
+    background-color:#FD7C39;
+    color:blue;
+    font-size:120%;
+    border-radius: 30px;
+}
+
+#user_form div{
+    float:left;
+    width:70%;
+    background-color:#FD7C39;
+    font-size:120%;
+}
+
+#user_form input{
+    background-color:#FD7C39;
+    color:blue;
+    font-size:120%;
+    border-radius: 30px;
+}
+
+.drink-table{
+    width:70%;
+}
+
+#add_cash{
+    opacity:0;
+    color:none;
+}
+
+
