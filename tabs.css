@@ -68,6 +68,7 @@ button.active{
     /* background-color:#7EFF43; */
     background-color:#1f628d;
     border: solid #FD7C39 2px;
+    color: #FD7C39;
 }
 button.active div{
     background-color:#1f628d;

@@ -60,7 +60,34 @@ if (Meteor.isClient) {
    
     });
 
-    
+    function setAllUsers(cursors,data){
+      var ids = [];
+      cursors.forEach( function(cursor){
+	ids.push( cursor._id );
+      });
+      
+      ids.forEach( function(id){
+	Users.update(id,{$set: {data}});
+      });
+      
+    }
+
+    function setAllDrinks(cursors,data){
+      var ids = [];
+      cursors.forEach( function(cursor){
+	ids.push( cursor._id );
+      });
+      
+      ids.forEach( function(id){
+	Drinks.update(id,{$set: {data}});
+      });
+      
+    }
+
+    $("#pregame_button").click( function(e){
+      $(this).toggleClass("active");
+
+    });
   });
 
   Template.user.events = {
