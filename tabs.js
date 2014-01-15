@@ -14,7 +14,7 @@ if (Meteor.isClient) {
       });
       
       ids.forEach( function(id){
-	Users.update(id,{$set: {data}});
+	Users.update(id,{$set: data});
       });
       
     }
@@ -26,7 +26,7 @@ if (Meteor.isClient) {
       });
       
       ids.forEach( function(id){
-	Drinks.update(id,{$set: {data}});
+	Drinks.update(id,{$set: data});
       });
       
     }
@@ -87,7 +87,8 @@ if (Meteor.isClient) {
 
     $("#pregame_button").click( function(e){
       $(this).toggleClass("active");
-
+      users = Users.find({active:"",hidden: false})
+      setAllUsers(users,{active:"active"}
     });
   });
 
