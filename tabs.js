@@ -87,8 +87,15 @@ if (Meteor.isClient) {
 
     $("#pregame_button").click( function(e){
       $(this).toggleClass("active");
-      users = Users.find({active:"",hidden: false});
-      setAllUsers(users,{active:"active"});
+
+      if( $(this).hasClass("active") ){
+	users = Users.find({active:"",hidden: false});
+	setAllUsers(users,{active:"active"});
+      }else{
+	users = Users.find({active:"active",hidden: false});
+	setAllUsers(users,{active:""});
+      }
+	  
     });
   });
 
@@ -117,41 +124,69 @@ if (Meteor.isClient) {
     
   };
 
+  function verifyFunds(users,drinkPrice){
+    var falseFound = false;
+    users.forEach(function(user){
+    var newCredit = parseFloat(user.credit)-parseFloat(drinkPrice);
+      if( newCredit < 0 ) {
+	alert("Hey "+user.user_name+" you fucking deadbeat, you're out of credit.");
+	falseFound=true;
+      }
+    });
+    return !falseFound;
+
+  }
+  
   function addDrinks(activeElements,drinkId){
-    $.each(activeElements,function(index,element){
-      var userId = $(element).attr("user_id");
+    var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
+    var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
+    var numUsersSelected = Users.find({active:"active"}).fetch().length;
+    
+    pregameMode = $("#pregame_button").hasClass("active");
+    
+    if( pregameMode ){
+      drinkPrice = (parseFloat(drinkPrice)/numUsersSelected).toFixed(2);
+      drinkName = drinkName+" (pregame)";
+    }
 
-      // var user = Users.find(user_id).fetch("user_name")[0]["something"] = "assfuck";
-      // Go through an array of drinks, each drink is a hash. Each drink hash
-      // has a number of drinks purchases, a day that they were purchased,
-      // the drink name, the drink id, and the drink price.
-      var drink_found = false; 
-      var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
-      var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
+    fundsFound = verifyFunds(Users.find({active:"active",hidden:false}),drinkPrice);
+    if(fundsFound){
+      $.each(activeElements,function(index,element){
+	var userId = $(element).attr("user_id");
 
-      var user = Users.find(userId).fetch()[0];
-      var drinks = user["drinks"];
+	// var user = Users.find(user_id).fetch("user_name")[0]["something"] = "assfuck";
+	// Go through an array of drinks, each drink is a hash. Each drink hash
+	// has a number of drinks purchases, a day that they were purchased,
+	// the drink name, the drink id, and the drink price.
+	var drink_found = false; 
 
-      var userName = user["user_name"];
-      var newCredit = parseFloat(user["credit"])-parseFloat(drinkPrice);
-      if( newCredit < 0 ) alert("Hey "+userName+" you fucking deadbeat, you're out of credit. Also, you're a cocksucker");
-      else{
+	var user = Users.find(userId).fetch()[0];
+	var drinks = user["drinks"];
+
+	var userName = user["user_name"];
+	
+	//set drinks if it's not there (defensive programming)
 	if(!drinks) drinks = [];
+	
 	$.each(drinks,function(index,drink){
 	  if( drink ) {
-	    if( !drink["day"] ) drink["day"] = new Date();
+	    //defensive programming stuff. make sure drink.day and currentDay have something
+	    if( !drink["day"] ) drink.day = new Date();
 	    if( !currentDay ) currentDay = new Date();
 	    
 	    var sameDay = drink["day"].getDate() === currentDay.getDate(); 
 	    var sameName = drink["name"] === drinkName;
 	    var sameId = drink["drink_id"] === drinkId;
+	    var samePrice = drink.price === drinkPrice;
 	    
-	    if( sameDay && sameName && sameId ) {
+	    if( sameDay && sameName && sameId && samePrice) {
 	      drink["number"] = parseFloat(drink["number"])+1;
 	      drink_found = true;
 	    }
 	  }
 	});
+	
+	//if the drink didn't already exist make a blank one
 	if(!drink_found){
 	  var data = {
 	    'day': new Date(),
@@ -166,11 +201,15 @@ if (Meteor.isClient) {
 	Users.update(userId,{$set: {drinks: drinks}});
 	Users.update(userId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
-      }
-      Users.update(userId,{$set: {active: ""}});
+        
+	Users.update(userId,{$set: {active: ""}});
+      
       // Users.update(user);
-      // console.log(user);
-    });
+	     // console.log(user);
+      });
+      $("#pregame_button").toggleClass("active");
+    }
+   
   }
   
   Template.drink.events = {
