@@ -5,10 +5,13 @@
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="tabs.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
   </head>
   
 <body>
   <button class="pull-right" id="delete_button"> Delete </button>
+    <button class="pull-right" id="hide_button"> Hide </button>
   <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
  {{>add_cash}}
   <div class="container">
@@ -32,8 +35,8 @@
       </div>
     </div>
   </div>
-  <div class="container">
-    <table class="table" border="1" cellpadding="1">
+  <div class="container douche-container">
+    <table class="table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
       <tr>
         <td>
           <label>Name</label>
@@ -75,7 +78,8 @@
 	    {{ credit }}
           </td>
           <td>
-            <table class="table drink-table" border="1" cellpadding="1">
+
+            <table class="table drink-table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
             <tr>
               <td>
                 <label> Drink Name</label>
@@ -158,3 +162,10 @@
 	  <template name="add_cash">
 	    <input type="text" id="add_cash"> </input>
 	  </template>
+
+
+
+	    <!-- 	    <div> -->
+	    <!--   <button class="" id="pregame_button"> Delete </button> -->
+	    <!-- </div> -->
+

@@ -18,6 +18,14 @@ body *:not(button){
 /* .container:nth-of-type(2):before { */
 /*     background-color:rgba(0,0,0,1) */
 /* } */
+
+.container.douche-container {
+    /* position:relative; */
+    clear:both;
+    /* display:block; */
+    /* width:70%; */
+    overflow:auto;
+}
 button {
     color: #1f628d;
     width:100%;
@@ -72,9 +80,10 @@ button div{
     font-size:150%;
 }
 
-table {
+table.smaller {
     color: #FD5700;
-    width:100%;
+    max-width:100%;
+    /* width: 50%; */
 }
 table label{
     font-size:110%;
@@ -135,6 +144,20 @@ table label{
     width:100px;
 }
 
+#hide_button:hover{
+    opacity:1;
+    background-color:teal;
+}
+
+#hide_button{
+    opacity:0;
+    color:none;
+    width:100px;
+}
+
+#pregame_button{
+    width:100px;
+}
 .madhu:active{
     opacity:1;
 }

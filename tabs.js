@@ -3,6 +3,7 @@ Drinks = new Meteor.Collection("drinks");
 Users = new Meteor.Collection("users");
 if (Meteor.isClient) {
   var currentDay;
+  Session.set("day",new Date().getDate());
   Meteor.subscribe( 'users' );
   Meteor.subscribe( 'drinks' );
 
@@ -32,6 +33,33 @@ if (Meteor.isClient) {
       }
    
     });
+
+
+    $("#hide_button").click( function(){
+      var retVal = confirm("We're just gonna shove this somewhere....");
+      if( retVal == true ){
+
+	$.each($("[name='drink']"),function(index,element){
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("drink_id");
+	    Drinks.update(id,{$set:{hidden:true,active:""}});
+	  }
+	});
+
+	$.each($("[name='user']"),function(index,element){
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("user_id");	   
+	    Users.update(id,{$set: {hidden:true,active:""}});
+	  }
+	});
+
+	return true;
+      }else{
+	return false;
+      }
+   
+    });
+
     
   });
 
@@ -97,7 +125,7 @@ if (Meteor.isClient) {
 	});
 	if(!drink_found){
 	  var data = {
-	    'day': currentDay,
+	    'day': new Date(),
 	    'name': drinkName,
 	    'drink_id': drinkId,
 	    'number': 1,
@@ -148,12 +176,14 @@ if (Meteor.isClient) {
       var data = {
 	drink_name: drink_name.value,
 	price: priceFloat,
-	timestamp: new Date().getTime()
+	timestamp: new Date().getTime(),
+	hidden: false
       };
 
-      console.log();
-      drinkNameExists = Drinks.find({drink_name: drink_name.value}).fetch().length > 0
-      if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100 || drinkNameExists)
+      drinksWithName = Drinks.find({drink_name: drink_name.value}).fetch();
+      if ( drinksWithName.length > 0 && isNaN(priceFloat)) Drinks.update(drinksWithName[0]._id,{$set:{hidden: false}});
+      else if (drinksWithName.length > 0) Drinks.update(drinksWithName[0]._id,{$set: {hidden:false,price:priceFloat}});
+      else if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100)
 	alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
       else Drinks.insert(data);
 
@@ -163,7 +193,7 @@ if (Meteor.isClient) {
   }});
 
   Template.drink.drinks = function() {
-    return Drinks.find({}, {sort: {timestamp: -1, drink_name: 1}});
+    return Drinks.find({hidden: false}, {sort: {timestamp: -1, drink_name: 1}});
   };
 
   Template.user_form.events({'keypress #user_form' : function(event, template) {
@@ -176,11 +206,16 @@ if (Meteor.isClient) {
 	user_name: user_name.value,
 	timestamp: new Date(),
 	credit: 0,
-	active: ""
+	active: "",
+	hidden: false
       };
 
       if (user_name.value === "")
 	alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+      else if ( Users.find({user_name: user_name.value}).fetch()[0] ){
+	userId = Users.find({user_name: user_name.value}).fetch()[0]._id;
+	Users.update(userId,{$set: {hidden: false}});
+      }
       else Users.insert(data);
 
       user_name.value="";
@@ -188,10 +223,12 @@ if (Meteor.isClient) {
   }});
 
   Template.user.users = function() {
-    return Users.find({}, {sort: {user_name: 1}});
+    return Users.find({hidden: false}, {sort: {user_name: 1}});
   };
 
   Template.drink_table.users = function() {
+    //if the day isn't selected, just use the current day
+    // if( !Session.get("day") ) 
     var userElement = $("[name='user']")
     // var ids = [];
     // if ( $(userElement).find("[input='checkbox']").prop("checked") ){
@@ -211,6 +248,9 @@ if (Meteor.isClient) {
 	});
 
 	user.drinks = newDrinks;
+
+	//clip credit to two decimals
+	user.credit = user.credit.toFixed(2);
       }
     });
     return users;
