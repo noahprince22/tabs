@@ -87,8 +87,8 @@ if (Meteor.isClient) {
 
     $("#pregame_button").click( function(e){
       $(this).toggleClass("active");
-      users = Users.find({active:"",hidden: false})
-      setAllUsers(users,{active:"active"}
+      users = Users.find({active:"",hidden: false});
+      setAllUsers(users,{active:"active"});
     });
   });
 
