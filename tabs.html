@@ -12,6 +12,7 @@
   <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
  {{>add_cash}}
   <div class="container">
+    <h1 ><center onclick="http://www.youtube.com/watch?v=xSAxR6BgW3I" >LETS GET FUCKED UP</center></h1>
     <div class="row">
       <div class="col-md-4">
 	<label class="control-label">Name</label>
@@ -41,7 +42,12 @@
           <label>Credits</label>
         </td>
         <td>
-          <label>Drinks</label>
+	  <div class="pull-left">
+            <label>Drinks</label>
+	  </div>
+	  <div class="pull-right">
+	    {{>dates_selector}}
+	  </div>
         </td>
       </tr>
       <tbody>
@@ -50,6 +56,14 @@
     </table>
   </div>
 </body>
+
+<template name="dates_selector" >
+  <select class="form-control">
+    {{#each dates}}
+    <option value={{this}}>{{this}}</option>
+    {{/each}}
+  </select>
+</template>
 
 <template name="drink_table" >
       {{#each users}}

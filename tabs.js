@@ -2,7 +2,7 @@
 Drinks = new Meteor.Collection("drinks");
 Users = new Meteor.Collection("users");
 if (Meteor.isClient) {
-  var day;
+  var currentDay;
   Meteor.subscribe( 'users' );
   Meteor.subscribe( 'drinks' );
 
@@ -83,9 +83,9 @@ if (Meteor.isClient) {
 	$.each(drinks,function(index,drink){
 	  if( drink ) {
 	    if( !drink["day"] ) drink["day"] = new Date();
-	    if( !day ) day = new Date();
+	    if( !currentDay ) currentDay = new Date();
 	    
-	    var sameDay = drink["day"].getDay() === day.getDay(); 
+	    var sameDay = drink["day"].getDate() === currentDay.getDate(); 
 	    var sameName = drink["name"] === drinkName;
 	    var sameId = drink["drink_id"] === drinkId;
 	    
@@ -97,7 +97,7 @@ if (Meteor.isClient) {
 	});
 	if(!drink_found){
 	  var data = {
-	    'day': day,
+	    'day': currentDay,
 	    'name': drinkName,
 	    'drink_id': drinkId,
 	    'number': 1,
@@ -197,7 +197,24 @@ if (Meteor.isClient) {
     // if ( $(userElement).find("[input='checkbox']").prop("checked") ){
     //   ids.push( $(element).attr("user_id") ) 
     // }
-    return Users.find({active: "active"}, {sort: {user_name: 1}});
+    day = Session.get("day")
+    users = Users.find({active: "active"}, {sort: {user_name: 1}}).fetch();
+    users.forEach( function(user){
+      if(user.drinks){
+	var now = new Date();
+	var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
+	
+	var newDrinks = user.drinks.slice();
+	user.drinks.forEach( function(drink,index){
+	  if(!drink["day"]) drink["day"] = new Date();
+	  if( drink["day"].getDate() !== day || drink.day.getTime() < aMonthBack) newDrinks.splice(newDrinks.indexOf(drink),1);
+	});
+
+	user.drinks = newDrinks;
+      }
+    });
+    return users;
+    
   };
 
   Template.add_cash.events({'keypress #add_cash' : function(event, template) {
@@ -220,6 +237,38 @@ if (Meteor.isClient) {
     
   }});
 
+
+  function getDates() {
+    users = Users.find();
+    var dates = [];
+    var displayDates =[];
+    users.forEach( function(user){
+      if(user.drinks){
+	user.drinks.forEach( function(drink){
+	  var now = new Date();
+	  var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
+	  if(drink.day.getTime() > aMonthBack && dates.indexOf(drink.day.getDate()) == -1){
+	    dates.push( drink.day.getDate() );
+	    displayDates.push( drink.day.toLocaleDateString() );	    
+	  }
+
+	});
+      }
+    });
+    return displayDates;
+  } 
+
+  
+  Template.dates_selector.dates = function(){
+    return getDates();
+  };
+
+  Template.dates_selector.events({'click' : function(event,template){
+    index = template.find(".form-control").selectedIndex;
+    date = template.find(".form-control").options[index].value.split('/')[1];
+    Session.set("day",parseFloat(date));
+  }});
+
 }
 
 // code to run on server at startup
@@ -233,4 +282,5 @@ if (Meteor.isServer) {
       return Drinks.find();
     });		   
   });
+
 }
