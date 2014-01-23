@@ -124,16 +124,24 @@ if (Meteor.isClient) {
     
     $(".select-all").click( function(e){
       $(this).toggleClass("active");
+      users = Users.find({hidden: false});
+      hash = Session.get("activeUsers");
       
       if( $(this).hasClass("active") ){
-	users = Users.find({hidden: false});
-	hash = Session.get("activeUsers");
-	Users.forEach(function(user){
+	users.forEach(function(user){
 	  hash[user._id] = true;
+	  $("[user_id='"+user._id+"']").addClass("active");
 	});
 
 	Session.set("activeUsers",hash);
 	// setAllUsers(users,{active:"active"});
+      }else{
+	users.forEach(function(user){
+	  hash[user._id] = false;
+	  $("[user_id='"+user._id+"']").removeClass("active");
+	});
+
+	Session.set("activeUsers",hash);
       }
 
     });
@@ -377,7 +385,7 @@ if (Meteor.isClient) {
   Template.user.users = function() {
     return Users.find({hidden: false}, {sort: {user_name: 1}});
   };
-
+  
   Template.drink_table.users = function() {
     //if the day isn't selected, just use the current day
     // if( !Session.get("day") ) 
