@@ -4,9 +4,22 @@ Users = new Meteor.Collection("users");
 if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
+  Session.set("activeUsers",{});
   Meteor.subscribe( 'users' );
   Meteor.subscribe( 'drinks' );
 
+  function getActiveUsers(){
+    hash = Session.get("activeUsers")
+    returnUsers = [];
+
+    users = Users.find({},{sort: {user_name: 1}});
+    users.forEach(function(user){
+      if(hash[user._id]) returnUsers.push(user);
+    });
+    return returnUsers; 
+      // {sort: {user_name: 1}
+  }
+  
     function setAllUsers(cursors,data){
       var ids = [];
       cursors.forEach( function(cursor){
@@ -85,17 +98,19 @@ if (Meteor.isClient) {
 	$.each($("[name='drink']"),function(index,element){
 	  if($(element).hasClass("active")){
 	    var id = $(element).attr("drink_id");
-	    Drinks.update(id,{$set:{hidden:true,active:""}});
+	    Drinks.update(id,{$set:{hidden:true}});
 	  }
 	});
 
-	$.each($("[name='user']"),function(index,element){
-	  if($(element).hasClass("active")){
-	    var id = $(element).attr("user_id");	   
-	    Users.update(id,{$set: {hidden:true,active:""}});
+	hash = Session.get("activeUsers");
+	$.each(getActiveUsers(),function(index,user){
+	  if(hash[user._id]){
+	    Users.update(user._id,{$set: {hidden:true}});
+	    hash[user._id] = false;
 	  }
 	});
-
+	Session.set("activeUsers",hash);
+	
 	return true;
       }else{
 	return false;
@@ -111,31 +126,37 @@ if (Meteor.isClient) {
       $(this).toggleClass("active");
       
       if( $(this).hasClass("active") ){
-	users = Users.find({active:"",hidden: false});
-	setAllUsers(users,{active:"active"});
-      }else{
-	users = Users.find({active:"active",hidden: false});
-	setAllUsers(users,{active:""});
+	users = Users.find({hidden: false});
+	hash = Session.get("activeUsers");
+	Users.forEach(function(user){
+	  hash[user._id] = true;
+	});
+
+	Session.set("activeUsers",hash);
+	// setAllUsers(users,{active:"active"});
       }
-	  
+
     });
-  });
+
+   });
 
   Template.user.events = {
     'click': function(e){
-      element = $(e.target).closest("[name='user']")
+      element = $(e.target).closest("[name='user']");
+      hash = Session.get("activeUsers");
+      
       var userId = $(e.target).closest("[name='user']").attr("user_id");
-      var active = Users.find(userId).fetch()[0]["active"];
-      var activeBool = active ==="active";
-
-      if(activeBool){
-	var thing = Users.update(userId,{$set: {active: ""}});
+      var active = hash[userId]
+      //toggling the active on the user
+      if(active){
+	hash[userId] = false; 
+	// var thing = Users.update(userId,{$set: {active: ""}});
       }
       else
-	Users.update(userId,{$set: {active: "active"}});
+	hash[userId] = true;
 
-      $(element).toggleClass("active")
-      
+      $(element).toggleClass("active");
+      Session.set("activeUsers",hash);
       $("[name='drink']").removeClass("active");
 
       $(element).click(function(e) {
@@ -149,7 +170,7 @@ if (Meteor.isClient) {
   function verifyFunds(users,drinkPrice){
     var falseFound = false;
     users.forEach(function(user){
-    var newCredit = parseFloat(user.credit)-parseFloat(drinkPrice);
+      var newCredit = parseFloat(user.credit)-parseFloat(drinkPrice);
       if( newCredit < 0 ) {
 	alert("Hey "+user.user_name+" you fucking deadbeat, you're out of credit.");
 	falseFound=true;
@@ -160,9 +181,10 @@ if (Meteor.isClient) {
   }
   
   function addDrinks(activeElements,drinkId){
+    debugger;
     var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
     var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
-    var numUsersSelected = Users.find({active:"active"}).fetch().length;
+    var numUsersSelected = Object.keys(Session.get("activeUsers")).length
     
     splitTabMode = $("#split_tab").hasClass("active");
     
@@ -171,7 +193,7 @@ if (Meteor.isClient) {
       drinkName = drinkName+" (splitTab)";
     }
 
-    fundsFound = verifyFunds(Users.find({active:"active",hidden:false}),drinkPrice);
+    fundsFound = verifyFunds(getActiveUsers(),drinkPrice);
     if(fundsFound){
       $.each(activeElements,function(index,element){
 	var userId = $(element).attr("user_id");
@@ -216,7 +238,7 @@ if (Meteor.isClient) {
 	    'drink_id': drinkId,
 	    'number': 1,
 	    'price': drinkPrice
-	  }
+	  };
 	  drinks.push(data);
 	}
 
@@ -224,8 +246,10 @@ if (Meteor.isClient) {
 	Users.update(userId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
         
-	Users.update(userId,{$set: {active: ""}});
-      
+	// Users.update(userId,{$set: {active: ""}});
+	hash = Session.get("activeUsers");
+	hash[userId] = false;
+	Session.set("activeUsers",hash);
       // Users.update(user);p
 	     // console.log(user);
       });
@@ -238,13 +262,16 @@ if (Meteor.isClient) {
   Template.drink.events = {
     'click [name="drink"]' : function(e){
       $(e.target).closest("[name='drink']").toggleClass("active");
-      var elements = $("[name='user']")
+      var elements = $("[name='user']");
 
       var activeElements = [];
-      users = Users.find({active: "active"}).fetch();
-      $.each(users,function(index,user){
-	activeElements.push($("[user_id='"+user["_id"]+"']"));
-      });
+      hash = Session.get("activeUsers");
+      debugger;
+      for(var id in hash){
+	if(hash[id]){
+	  activeElements.push($("[user_id='"+id+"']"));
+	}
+      }
       
       console.log(activeElements);
       if(activeElements.length > 0){
@@ -360,7 +387,8 @@ if (Meteor.isClient) {
     //   ids.push( $(element).attr("user_id") ) 
     // }
     day = Session.get("day");
-    users = Users.find({active: "active"}, {sort: {user_name: 1}}).fetch();
+    
+    users = getActiveUsers();
     users.forEach( function(user){
       if(user.drinks){
 	var now = new Date();
@@ -385,12 +413,12 @@ if (Meteor.isClient) {
   Template.add_cash.events({'keypress #add_cash' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
-      credit = template.find("#add_cash")
+      credit = template.find("#add_cash");
       var value = parseFloat(parseFloat(credit.value).toFixed(2));
       if( isNaN(value) ) {
 	alert("You're a cocksucker, put a number in");
       }else{
-	users = Users.find({active: "active"}).fetch();
+	users = getActiveUsers();
 	$.each(users,function(index,user){
 	  Users.update(user["_id"],{$inc: {credit: value}});
 	});
