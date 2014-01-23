@@ -156,9 +156,14 @@ table label{
     width:100px;
 }
 
-#pregame_button{
+.select-all{
     width:100px;
 }
+
+#split_tab{
+    width:100px;
+}
+
 .madhu:active{
     opacity:1;
 }
@@ -169,4 +174,9 @@ table label{
     opacity:0;
     bottom:2px;
     right:2px;
+}
+
+.dropdown-menu{
+    color: #1f628d;
+    background-color: #FD5700;
 }

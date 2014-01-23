@@ -31,8 +31,26 @@ if (Meteor.isClient) {
       
     }
 
-
   $(function () {
+    //lets get fucked up song
+    $("#fucked_up").click(function(e){
+      var win=window.open('http://www.youtube.com/watch?v=xSAxR6BgW3I', '_blank');
+      win.focus();
+    });
+    
+    $("a").click(function(e) {
+      var x = e.pageX - this.offsetLeft - 20;
+      var y = e.pageY - this.offsetTop + 22;
+      $(".tooltip").show().css({
+	left: x,
+	top: y
+      }).delay(3000).fadeOut();
+      return false;
+    });
+
+    $(".tooltip").click(function() {
+      $(this).hide();
+    });
     
     $("#delete_button").click( function(){
       var retVal = confirm("Do you want to continue? Shit gon get deleted. Don't press OK unless you're sober");
@@ -85,9 +103,13 @@ if (Meteor.isClient) {
    
     });
 
-    $("#pregame_button").click( function(e){
+    $("#split_tab").click( function(e){
       $(this).toggleClass("active");
-
+    });
+    
+    $(".select-all").click( function(e){
+      $(this).toggleClass("active");
+      
       if( $(this).hasClass("active") ){
 	users = Users.find({active:"",hidden: false});
 	setAllUsers(users,{active:"active"});
@@ -142,11 +164,11 @@ if (Meteor.isClient) {
     var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
     var numUsersSelected = Users.find({active:"active"}).fetch().length;
     
-    pregameMode = $("#pregame_button").hasClass("active");
+    splitTabMode = $("#split_tab").hasClass("active");
     
-    if( pregameMode ){
+    if( splitTabMode ){
       drinkPrice = (parseFloat(drinkPrice)/numUsersSelected).toFixed(2);
-      drinkName = drinkName+" (pregame)";
+      drinkName = drinkName+" (splitTab)";
     }
 
     fundsFound = verifyFunds(Users.find({active:"active",hidden:false}),drinkPrice);
@@ -204,10 +226,11 @@ if (Meteor.isClient) {
         
 	Users.update(userId,{$set: {active: ""}});
       
-      // Users.update(user);
+      // Users.update(user);p
 	     // console.log(user);
       });
-      $("#pregame_button").toggleClass("active");
+      $("#split_tab").removeClass("active");
+      $(".select-all").removeClass("active");
     }
    
   }
@@ -232,7 +255,41 @@ if (Meteor.isClient) {
       }
     }
   };
- 
+  //************************//
+  //TYPEAHEAD STUFF        //
+  //***********************//
+
+  Template.drink.rendered = function(){
+    // if(this.rendered){
+      var hiddenDrinks = Drinks.find( {hidden: true} ).fetch();
+      var names = [];
+      
+      hiddenDrinks.forEach( function(drink){
+    	names.push(drink.drink_name);
+      });
+    $("#drink_form .typeahead").first().typeahead({
+	source: names
+    });
+    $("#drink_form .typeahead").first().data('typeahead').source = names;
+    // }
+  };
+
+  Template.user.rendered = function(){
+    // if(this.rendered){
+      var hiddenUsers = Users.find( {hidden: true} ).fetch();
+      var names = [];
+      
+      hiddenUsers.forEach( function(user){
+    	names.push(user.user_name);
+      });
+    $("#user_form .typeahead").first().typeahead({
+	source: names
+    });
+    $("#user_form .typeahead").first().data('typeahead').source = names;
+    // }
+  };
+
+
   Template.drink_form.events({'keypress #drink_form' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
@@ -263,7 +320,7 @@ if (Meteor.isClient) {
   Template.drink.drinks = function() {
     return Drinks.find({hidden: false}, {sort: {timestamp: -1, drink_name: 1}});
   };
-
+  
   Template.user_form.events({'keypress #user_form' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
@@ -297,12 +354,12 @@ if (Meteor.isClient) {
   Template.drink_table.users = function() {
     //if the day isn't selected, just use the current day
     // if( !Session.get("day") ) 
-    var userElement = $("[name='user']")
+    var userElement = $("[name='user']");
     // var ids = [];
     // if ( $(userElement).find("[input='checkbox']").prop("checked") ){
     //   ids.push( $(element).attr("user_id") ) 
     // }
-    day = Session.get("day")
+    day = Session.get("day");
     users = Users.find({active: "active"}, {sort: {user_name: 1}}).fetch();
     users.forEach( function(user){
       if(user.drinks){
@@ -363,7 +420,8 @@ if (Meteor.isClient) {
 	});
       }
     });
-    return displayDates;
+    
+    return displayDates.sort().reverse();
   } 
 
   
@@ -371,7 +429,7 @@ if (Meteor.isClient) {
     return getDates();
   };
 
-  Template.dates_selector.events({'click' : function(event,template){
+  Template.dates_selector.events({'click, touchend' : function(event,template){
     index = template.find(".form-control").selectedIndex;
     date = template.find(".form-control").options[index].value.split('/')[1];
     Session.set("day",parseFloat(date));
