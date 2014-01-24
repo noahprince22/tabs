@@ -298,7 +298,7 @@ if (Meteor.isClient) {
 
   Template.drink.rendered = function(){
     // if(this.rendered){
-      var hiddenDrinks = Drinks.find({$or: [{hidden: true},{available: {$lt: 0}}] }).fetch();
+      var hiddenDrinks = Drinks.find({$or: [{hidden: true},{available: {$lte: 0}}] }).fetch();
       var names = [];
       hiddenDrinks.forEach( function(drink){
     	names.push(drink.drink_name);
@@ -436,13 +436,17 @@ if (Meteor.isClient) {
 	alert("You're a cocksucker, put a number in");
       }else{
 	users = getActiveUsers();
+	hash = Session.get("activeUsers");
 	$.each(users,function(index,user){
 	  Users.update(user["_id"],{$inc: {credit: value}});
+	  hash[user._id] = false;
 	});
 	$.each($("[name='drink'][class='active']"),function(index,drink){
 	  drinkId = $(drink).attr("drink_id");
 	  Drinks.update(drinkId,{$inc: {available: parseFloat(value.toFixed(0))}});
 	});
+
+	Session.set("activeUsers",hash);
 	
       }
       credit.value = "";
