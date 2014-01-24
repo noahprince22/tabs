@@ -9,7 +9,7 @@ if (Meteor.isClient) {
   Meteor.subscribe( 'drinks' );
 
   function getActiveUsers(){
-    hash = Session.get("activeUsers")
+    hash = Session.get("activeUsers");
     returnUsers = [];
 
     users = Users.find({},{sort: {user_name: 1}});
@@ -189,10 +189,9 @@ if (Meteor.isClient) {
   }
   
   function addDrinks(activeElements,drinkId){
-    debugger;
     var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
     var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
-    var numUsersSelected = Object.keys(Session.get("activeUsers")).length
+    var numUsersSelected = Object.keys(Session.get("activeUsers")).length;
     
     splitTabMode = $("#split_tab").hasClass("active");
     
@@ -253,7 +252,8 @@ if (Meteor.isClient) {
 	Users.update(userId,{$set: {drinks: drinks}});
 	Users.update(userId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
-        
+        Drinks.update(drinkId,{$inc: {available: -1}});
+
 	// Users.update(userId,{$set: {active: ""}});
 	hash = Session.get("activeUsers");
 	hash[userId] = false;
@@ -274,7 +274,7 @@ if (Meteor.isClient) {
 
       var activeElements = [];
       hash = Session.get("activeUsers");
-      debugger;
+
       for(var id in hash){
 	if(hash[id]){
 	  activeElements.push($("[user_id='"+id+"']"));
@@ -296,9 +296,8 @@ if (Meteor.isClient) {
 
   Template.drink.rendered = function(){
     // if(this.rendered){
-      var hiddenDrinks = Drinks.find( {hidden: true} ).fetch();
+      var hiddenDrinks = Drinks.find({$or: [{hidden: true},{available: {$lt: 0}}] }).fetch();
       var names = [];
-      
       hiddenDrinks.forEach( function(drink){
     	names.push(drink.drink_name);
       });
@@ -337,12 +336,20 @@ if (Meteor.isClient) {
 	drink_name: drink_name.value,
 	price: priceFloat,
 	timestamp: new Date().getTime(),
-	hidden: false
+	hidden: false,
+	      available: 1
       };
 
       drinksWithName = Drinks.find({drink_name: drink_name.value}).fetch();
-      if ( drinksWithName.length > 0 && isNaN(priceFloat)) Drinks.update(drinksWithName[0]._id,{$set:{hidden: false}});
-      else if (drinksWithName.length > 0) Drinks.update(drinksWithName[0]._id,{$set: {hidden:false,price:priceFloat}});
+      if ( drinksWithName.length > 0 && isNaN(priceFloat)){
+	Drinks.update(drinksWithName[0]._id,{$set:{hidden: false}});
+
+	available = Drinks.find(drinksWithName[0]._id).fetch()[0].available;
+	if( available <= 0 ) Drinks.update( drinksWithName[0]._id, {$set: {available: 1}} );
+      }
+      else if (drinksWithName.length > 0){
+	Drinks.update(drinksWithName[0]._id,{$set: {hidden:false,price:priceFloat}});
+      }
       else if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100)
 	alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
       else Drinks.insert(data);
@@ -353,7 +360,7 @@ if (Meteor.isClient) {
   }});
 
   Template.drink.drinks = function() {
-    return Drinks.find({hidden: false}, {sort: {timestamp: -1, drink_name: 1}});
+    return Drinks.find({hidden: false,available: {$gt: 0}}, {sort: {timestamp: -1, drink_name: 1}});
   };
   
   Template.user_form.events({'keypress #user_form' : function(event, template) {
@@ -429,6 +436,10 @@ if (Meteor.isClient) {
 	users = getActiveUsers();
 	$.each(users,function(index,user){
 	  Users.update(user["_id"],{$inc: {credit: value}});
+	});
+	$.each($("[name='drink'][class='active']"),function(index,drink){
+	  drinkId = $(drink).attr("drink_id");
+	  Drinks.update(drinkId,{$inc: {available: parseFloat(value.toFixed(0))}});
 	});
 	
       }
