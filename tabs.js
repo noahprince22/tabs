@@ -198,6 +198,7 @@ if (Meteor.isClient) {
     if( splitTabMode ){
       drinkPrice = (parseFloat(drinkPrice)/numUsersSelected).toFixed(2);
       drinkName = drinkName+" (splitTab)";
+      Drinks.update(drinkId,{$inc: {available: -1}});
     }
 
     fundsFound = verifyFunds(getActiveUsers(),drinkPrice);
@@ -252,8 +253,9 @@ if (Meteor.isClient) {
 	Users.update(userId,{$set: {drinks: drinks}});
 	Users.update(userId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
-        Drinks.update(drinkId,{$inc: {available: -1}});
-
+	if( !splitTabMode ){
+          Drinks.update(drinkId,{$inc: {available: -1}});
+	}
 	// Users.update(userId,{$set: {active: ""}});
 	hash = Session.get("activeUsers");
 	hash[userId] = false;
