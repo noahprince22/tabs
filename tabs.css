@@ -56,12 +56,12 @@ button:hover, button:hover div{
     background-color:#FFAC69;
 }
 
-button:active, button:active div{
-    background-color:blue;
-}
-button:active div{
-	color:#FD7C39;
-}
+/* button:active, button:active div{ */
+/*     background-color:blue; */
+/* } */
+/* button:active div{ */
+	/* color:#FD7C39; */
+/* } */
 
 button.active{
     /* background-color:#FFAC69; */

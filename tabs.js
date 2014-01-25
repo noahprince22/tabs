@@ -270,6 +270,7 @@ if (Meteor.isClient) {
   }
   
   Template.drink.events = {
+    'touchstart .touch' : function(e){ e.preventDefault(); },
     'click [name="drink"]' : function(e){
       $(e.target).closest("[name='drink']").toggleClass("active");
       var elements = $("[name='user']");
