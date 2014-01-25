@@ -133,6 +133,11 @@ table label{
     color:none;
 }
 
+#add_cash:hover{
+    opacity:1;
+    color:red;
+}
+
 
 #delete_button:hover{
     opacity:1;
