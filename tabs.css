@@ -52,9 +52,9 @@ h1 *{
     font-size:150%;
 }
 
-/* button:hover, button:hover div{ */
-/*     background-color:#FFAC69; */
-/* } */
+button:hover, button:hover div{
+    background-color:#FFAC69;
+}
 
 /* button:active, button:active div{ */
 /*     background-color:blue; */

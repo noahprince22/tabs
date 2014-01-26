@@ -155,7 +155,7 @@ if (Meteor.isClient) {
       hash = Session.get("activeUsers");
       
       var userId = $(e.target).closest("[name='user']").attr("user_id");
-      var active = hash[userId]
+      var active = hash[userId];
       //toggling the active on the user
       if(active){
 	hash[userId] = false; 
@@ -476,6 +476,8 @@ if (Meteor.isClient) {
       }
     });
     
+	  if( displayDates.indexOf(new Date().toLocaleDateString) > -1)
+		  displayDates.push(new Date().toLocaleDateString);
     return displayDates.sort().reverse();
   } 
 
@@ -484,10 +486,13 @@ if (Meteor.isClient) {
     return getDates();
   };
 
-  Template.dates_selector.events({'click, touchend' : function(event,template){
+  Template.dates_selector.events({'change select, select' : function(event,template){
     index = template.find(".form-control").selectedIndex;
-    date = template.find(".form-control").options[index].value.split('/')[1];
-    Session.set("day",parseFloat(date));
+    // date = template.find(".form-control").options[index].value.split('/')[1];
+					  date = new Date(template.find(".form-control").options[index].value);
+
+					  
+    Session.set("day",parseFloat(date.getDate()));
   }});
 
 }
