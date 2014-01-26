@@ -480,7 +480,7 @@ if (Meteor.isClient) {
       dates.push([(new Date()).getDate(),new Date().toLocaleDateString]);
     }
     
-    return dates.reverse();
+      return dates.sort(function(arr,arr2){ return arr[0] - arr2[0] } ).reverse();
     // return [displayDates.sort().reverse().map(function(obj){ return ( new Date(obj) ).toLocaleDateString(); }), dates.sort().reverse()]; 
   } 
 
