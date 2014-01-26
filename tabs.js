@@ -467,8 +467,8 @@ if (Meteor.isClient) {
 	user.drinks.forEach( function(drink){
 	  var now = new Date();
 	  var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
-	  if(drink.day.getTime() > aMonthBack && !datesHasDate(dates,drink.day.getDate()) ){
-	    dates.push( [drink.day.getDate(),drink.day.toLocaleDateString()] );
+	  if(drink.day.getTime() > aMonthBack && !datesHasDate(dates,drink.day) ){
+	    dates.push( [drink.day,drink.day.toLocaleDateString()] );
 	    // displayDates.push( drink.day.getTime() );	    
 	  }
 
@@ -476,18 +476,18 @@ if (Meteor.isClient) {
       }
     });
 
-    if( dates.map(function(obj){ return (new Date(obj[0])).getDate(); }).indexOf( (new Date).getDate() ) > -1 ){
-      dates.push([(new Date()).getDate(),new Date().toLocaleDateString]);
+    if( dates.map(function(obj){ return (obj[0]).getDate(); }).indexOf( (new Date).getDate() ) > -1 ){
+	dates.push([new Date(),new Date().toLocaleDateString]);
     }
     
-      return dates.sort(function(arr,arr2){ return arr[0] - arr2[0] } ).reverse();
+      return dates.sort(function(arr,arr2){ return arr[0].getTime() - arr2[0].getTime(); } ).reverse();
     // return [displayDates.sort().reverse().map(function(obj){ return ( new Date(obj) ).toLocaleDateString(); }), dates.sort().reverse()]; 
   } 
 
   function datesHasDate(dates, day){
     bool = false;
     dates.forEach(function(arr){
-      if( arr[0] === day ) bool =  true;
+	if( arr[0].getDate() === day.getDate() ) bool =  true;
     })
     return bool;
   }
@@ -499,8 +499,8 @@ if (Meteor.isClient) {
   Template.dates_selector.events({'change select, select' : function(event,template){
     index = template.find(".form-control").selectedIndex;
     // date = template.find(".form-control").options[index].value.split('/')[1];
-    date = template.find(".form-control").options[index].value;
-					  
+      date = new Date(template.find(".form-control").options[index].value).getDate();
+      					  
     Session.set("day",parseFloat(date));
   }});
 
