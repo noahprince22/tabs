@@ -149,7 +149,7 @@ if (Meteor.isClient) {
    });
 
   Template.user.events = {
-    'touchend' : function(e){ e.preventDefault(); },
+    'touchstart' : function(e){ e.stopImmediatePropagation(); },
     'click': function(e){
       element = $(e.target).closest("[name='user']");
       hash = Session.get("activeUsers");
@@ -271,7 +271,7 @@ if (Meteor.isClient) {
   }
   
   Template.drink.events = {
-    'touchend' : function(e){ e.preventDefault(); },
+    'touchstart' : function(e){ e.stopImmediatePropagation(); },
     'click [name="drink"]' : function(e){
       $(e.target).closest("[name='drink']").toggleClass("active");
       var elements = $("[name='user']");
