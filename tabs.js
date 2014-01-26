@@ -461,26 +461,36 @@ if (Meteor.isClient) {
   function getDates() {
     users = Users.find();
     var dates = [];
-    var displayDates =[];
+    // var displayDates =[];
     users.forEach( function(user){
       if(user.drinks){
 	user.drinks.forEach( function(drink){
 	  var now = new Date();
 	  var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
-	  if(drink.day.getTime() > aMonthBack && dates.indexOf(drink.day.getDate()) == -1){
-	    dates.push( drink.day.getDate() );
-	    displayDates.push( drink.day.toLocaleDateString() );	    
+	  if(drink.day.getTime() > aMonthBack && !datesHasDate(dates,drink.day.getDate()) ){
+	    dates.push( [drink.day.getDate(),drink.day.toLocaleDateString()] );
+	    // displayDates.push( drink.day.getTime() );	    
 	  }
 
 	});
       }
     });
+
+    if( dates.map(function(obj){ return (new Date(obj[0])).getDate(); }).indexOf( (new Date).getDate() ) > -1 ){
+      dates.push([(new Date()).getDate(),new Date().toLocaleDateString]);
+    }
     
-	  if( displayDates.indexOf(new Date().toLocaleDateString) > -1)
-		  displayDates.push(new Date().toLocaleDateString);
-    return displayDates.sort().reverse();
+    return dates.reverse();
+    // return [displayDates.sort().reverse().map(function(obj){ return ( new Date(obj) ).toLocaleDateString(); }), dates.sort().reverse()]; 
   } 
 
+  function datesHasDate(dates, day){
+    bool = false;
+    dates.forEach(function(arr){
+      if( arr[0] === day ) bool =  true;
+    })
+    return bool;
+  }
   
   Template.dates_selector.dates = function(){
     return getDates();
@@ -489,10 +499,9 @@ if (Meteor.isClient) {
   Template.dates_selector.events({'change select, select' : function(event,template){
     index = template.find(".form-control").selectedIndex;
     // date = template.find(".form-control").options[index].value.split('/')[1];
-					  date = new Date(template.find(".form-control").options[index].value);
-
+    date = template.find(".form-control").options[index].value;
 					  
-    Session.set("day",parseFloat(date.getDate()));
+    Session.set("day",parseFloat(date));
   }});
 
 }
@@ -510,3 +519,8 @@ if (Meteor.isServer) {
   });
 
 }
+
+
+// Handlebars.registerHelper('index_of', function(context,ndx) {
+//   return context[ndx];
+// });

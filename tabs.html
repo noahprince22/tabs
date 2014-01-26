@@ -72,7 +72,7 @@
 <template name="dates_selector" >
   <select class="form-control">
     {{#each dates}}
-    <option value={{this}}>{{this}}</option>
+    <option value={{ this.[0] }}>{{this.[1]}}</option>
     {{/each}}
   </select>
 </template>
