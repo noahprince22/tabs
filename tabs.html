@@ -15,9 +15,24 @@
     <link rel="stylesheet" href="tabs.css">
     <meta name="viewport" content="width=device-width,initial-scale=1">
   </head>
-  
+
+<body>  
+  <div class="navbar navbar-static-top navbar-inverse">
+    <div class="navbar-inner">
+      <div class="container">
+  	<a class="brand">Tabber</a>
+  	<ul class="nav pull-right">
+  	  <li>
+  	    {{loginButtons}}
+  	  </li>
+  	</ul>
+      </div>
+    </div>
+  </div>
+
+
 <body>
-  <button class="pull-right" id="delete_button"> Delete </button>
+{{>delete_stuff}}
     <button class="pull-right" id="hide_button"> Hide </button>
   <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
  {{>add_cash}}
@@ -26,8 +41,8 @@
     <div class="row">
       <div class="col-md-4">
 	<label class="control-label">Name</label>
-	{{>user}}
-	{{>user_form}}
+	{{>client}}
+	{{>client_form}}
       </div>
       <div class="col-md-7">
         <div class="list-group">
@@ -78,10 +93,10 @@
 </template>
 
 <template name="drink_table" >
-      {{#each users}}
+      {{#each clients}}
         <tr>
           <td>
-            {{user_name}}
+            {{client_name}}
           </td>
           <td>
 	    {{ credit }}
@@ -156,17 +171,17 @@
 	  </template>
 
 
-	  <template name="user_form">
-	    <form id="user_form">
-	      <input autocomplete="off" class="typeahead form-control" name="user-name" type="text" placeholder="Type a name here">
+	  <template name="client_form">
+	    <form id="client_form">
+	      <input autocomplete="off" class="typeahead form-control" name="client-name" type="text" placeholder="Type a name here">
 	      </input>
 	    </form>
 	  </template>
 	  
-	  <template name="user">
-	    {{#each users}}
-	    <button name="user" user_id="{{_id}}">
-	      <div >{{user_name}}
+	  <template name="client">
+	    {{#each clients}}
+	    <button name="client" client_id="{{_id}}">
+	      <div >{{client_name}}
               </div>
 
             </button>
@@ -174,11 +189,12 @@
 	  </template>
 
 	  <template name="add_cash">
-	    <input type="text" placeholder="Don't touch" id="add_cash"> </input>
+	    <input type="text" class="{{hidden}}" placeholder="Number to add" id="add_cash"> </input>
 	  </template>
 
-
-
+	  <template name="delete_stuff">
+	    <button class="pull-right {{hidden}}"  id="delete_button"> Delete </button>
+	  </template>
 	    <!-- 	    <div> -->
 
 	    <!-- </div> -->

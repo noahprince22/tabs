@@ -15,6 +15,12 @@ body *:not(button){
     /* border-color:#FD5700; */
 }
 
+.login-display-name{color: white }
+.login-button{background-color: white}
+#main {
+    padding-top:20px;
+}
+
 /* .container:nth-of-type(2):before { */
 /*     background-color:rgba(0,0,0,1) */
 /* } */
@@ -114,14 +120,14 @@ table label{
     border-radius: 30px;
 }
 
-#user_form div{
+#client_form div{
     float:left;
     width:70%;
     background-color:#FD7C39;
     font-size:120%;
 }
 
-#user_form input{
+#client_form input{
     background-color:#FD7C39;
     color:blue;
     font-size:120%;
@@ -133,23 +139,13 @@ table label{
 /* } */
 
 #add_cash{
-    opacity:0;
-    color:none;
-}
-
-#add_cash:hover, #add_cash:focus{
     opacity:1;
     color:red;
 }
 
-#delete_button:hover{
+#delete_button{
     opacity:1;
     background-color:red;
-}
-
-#delete_button{
-    opacity:0;
-    color:none;
     width:100px;
 }
 

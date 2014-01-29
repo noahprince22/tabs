@@ -1,33 +1,37 @@
 //both client and server
-Drinks = new Meteor.Collection("drinks");
-Users = new Meteor.Collection("users");
+// Users = new Meteor.Collection("users");
+  Drinks = new Meteor.Collection("drinks");
+  Clients = new Meteor.Collection("clients");
+
 if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
-  Session.set("activeUsers",{});
-  Meteor.subscribe( 'users' );
+  Session.set("activeClients",{});
+  Meteor.subscribe( 'clients' );
   Meteor.subscribe( 'drinks' );
+  Meteor.subscribe( 'users' );
 
-  function getActiveUsers(){
-    hash = Session.get("activeUsers");
-    returnUsers = [];
+  function getActiveClients(){
+      hash = Session.get("activeClients");
+      returnClients = [];
 
-    users = Users.find({},{sort: {user_name: 1}});
-    users.forEach(function(user){
-      if(hash[user._id]) returnUsers.push(user);
-    });
-    return returnUsers; 
-      // {sort: {user_name: 1}
-  }
-  
-    function setAllUsers(cursors,data){
+      clients = Clients.find({},{sort: {client_name: 1}});
+      clients.forEach(function(client){
+	if(hash[client._id]) returnClients.push(client);
+      });
+      return returnClients; 
+      // {sort: {client_name: 1}
+
+    }
+    
+    function setAllClients(cursors,data){
       var ids = [];
       cursors.forEach( function(cursor){
 	ids.push( cursor._id );
       });
       
       ids.forEach( function(id){
-	Users.update(id,{$set: data});
+	Clients.update(id,{$set: data});
       });
       
     }
@@ -43,6 +47,53 @@ if (Meteor.isClient) {
       });
       
     }
+
+
+
+  Deps.autorun(function(e){
+    users = Meteor.users.find({}).fetch();
+    // XXX Do form validation
+    users.forEach(function(user){
+      var data = {
+	client_name: user.profile.name,
+	timestamp: new Date(),
+	credit: 0,
+	active: "",
+	drinks: [],
+	hidden: false
+      };
+      if (user.profile.name === "")
+	alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+      else if( Clients.find({user_id: user._id}).fetch()[0] ) {
+	clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
+	Clients.update(clientId,{$set: {hidden: false}});	
+      }
+      else if( Clients.find({client_name: user.profile.name}).fetch()[0] ){
+	  clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
+	  Clients.update(clientId,{$set: {hidden: false}});	
+      }
+      else if ( Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0] &&!("user_id" in Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0]) ){
+	oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
+	var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
+	var retVal = confirm( stringy );
+      	if( retVal == true ){
+      	  clientId = oldUser._id
+      	  Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
+      	}
+	if ( !retVal ) {
+	  Clients.insert(data);
+	}
+      }
+      else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
+
+
+
+      Session.set("user",user._id);
+      Session.set("user_name",user.profile.name);
+      
+    });
+
+  });
 
   $(function () {
     //lets get fucked up song
@@ -76,10 +127,10 @@ if (Meteor.isClient) {
 	  }
 	});
 
-	$.each($("[name='user']"),function(index,element){
+	$.each($("[name='client']"),function(index,element){
 	  if($(element).hasClass("active")){
-	    var id = $(element).attr("user_id");	   
-	    Users.remove(id);
+	    var id = $(element).attr("client_id");	   
+	    Clients.remove(id);
 	  }
 	});
 
@@ -87,9 +138,9 @@ if (Meteor.isClient) {
       }else{
 	return false;
       }
-   
+      
     });
-
+    
 
     $("#hide_button").click( function(){
       var retVal = confirm("We're just gonna shove this somewhere....");
@@ -102,20 +153,20 @@ if (Meteor.isClient) {
 	  }
 	});
 
-	hash = Session.get("activeUsers");
-	$.each(getActiveUsers(),function(index,user){
-	  if(hash[user._id]){
-	    Users.update(user._id,{$set: {hidden:true}});
-	    hash[user._id] = false;
+	hash = Session.get("activeClients");
+	$.each(getActiveClients(),function(index,client){
+	  if(hash[client._id]){
+	    Clients.update(client._id,{$set: {hidden:true}});
+	    hash[client._id] = false;
 	  }
 	});
-	Session.set("activeUsers",hash);
+	Session.set("activeClients",hash);
 	
 	return true;
       }else{
 	return false;
       }
-   
+      
     });
 
     $("#split_tab").click( function(e){
@@ -124,48 +175,56 @@ if (Meteor.isClient) {
     
     $(".select-all").click( function(e){
       $(this).toggleClass("active");
-      users = Users.find({hidden: false});
-      hash = Session.get("activeUsers");
+      clients = Clients.find({hidden: false});
+      hash = Session.get("activeClients");
       
       if( $(this).hasClass("active") ){
-	users.forEach(function(user){
-	  hash[user._id] = true;
-	  $("[user_id='"+user._id+"']").addClass("active");
+	clients.forEach(function(client){
+	  hash[client._id] = true;
+	  $("[client_id='"+client._id+"']").addClass("active");
 	});
 
-	Session.set("activeUsers",hash);
-	// setAllUsers(users,{active:"active"});
+	Session.set("activeClients",hash);
+	// setAllClients(Clients,{active:"active"});
       }else{
-	users.forEach(function(user){
-	  hash[user._id] = false;
-	  $("[user_id='"+user._id+"']").removeClass("active");
+	clients.forEach(function(client){
+	  hash[client._id] = false;
+	  $("[client_id='"+client._id+"']").removeClass("active");
 	});
 
-	Session.set("activeUsers",hash);
+	Session.set("activeClients",hash);
       }
 
     });
+  });
 
-   });
+    // if( Meteor.users.find({_id: Session.get("user")}).fetch()[0] )
+    // // onlineUsers.forEach(function(user){
+    //   if ( Clients.find({client_name: Session.get("user")}).fetch()[0] ){
+    // 	clientId = Clients.find({client_name: Session.get("user_name")}).fetch()[0]._id;
+    // 	Clients.update(clientId,{$set: {hidden: true}});
+    //   }
+      
+    // });
 
-  Template.user.events = {
+  Template.client.events = {
     'touchstart' : function(e){ e.stopImmediatePropagation(); },
     'click': function(e){
-      element = $(e.target).closest("[name='user']");
-      hash = Session.get("activeUsers");
+      element = $(e.target).closest("[name='client']");
+      hash = Session.get("activeClients");
       
-      var userId = $(e.target).closest("[name='user']").attr("user_id");
-      var active = hash[userId];
-      //toggling the active on the user
+      var clientId = $(e.target).closest("[name='client']").attr("client_id");
+      var active = hash[clientId];
+      //toggling the active on the client
       if(active){
-	hash[userId] = false; 
-	// var thing = Users.update(userId,{$set: {active: ""}});
+	hash[clientId] = false; 
+	// var thing = Clients.update(clientId,{$set: {active: ""}});
       }
       else
-	hash[userId] = true;
+	hash[clientId] = true;
 
       $(element).toggleClass("active");
-      Session.set("activeUsers",hash);
+      Session.set("activeClients",hash);
       $("[name='drink']").removeClass("active");
 
       $(element).click(function(e) {
@@ -176,12 +235,12 @@ if (Meteor.isClient) {
     
   };
 
-  function verifyFunds(users,drinkPrice){
+  function verifyFunds(clients,drinkPrice){
     var falseFound = false;
-    users.forEach(function(user){
-      var newCredit = parseFloat(user.credit)-parseFloat(drinkPrice);
+    clients.forEach(function(client){
+      var newCredit = parseFloat(client.credit)-parseFloat(drinkPrice);
       if( newCredit < 0 ) {
-	alert("Hey "+user.user_name+" you fucking deadbeat, you're out of credit.");
+	alert("Hey "+client.client_name+" you fucking deadbeat, you're out of credit.");
 	falseFound=true;
       }
     });
@@ -192,31 +251,31 @@ if (Meteor.isClient) {
   function addDrinks(activeElements,drinkId){
     var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
     var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
-    var numUsersSelected = Object.keys(Session.get("activeUsers")).length;
+    var numClientsSelected = Object.keys(Session.get("activeClients")).length;
     
     splitTabMode = $("#split_tab").hasClass("active");
     
     if( splitTabMode ){
-      drinkPrice = (parseFloat(drinkPrice)/numUsersSelected).toFixed(2);
+      drinkPrice = (parseFloat(drinkPrice)/numClientsSelected).toFixed(2);
       drinkName = drinkName+" (splitTab)";
       Drinks.update(drinkId,{$inc: {available: -1}});
     }
 
-    fundsFound = verifyFunds(getActiveUsers(),drinkPrice);
+    fundsFound = verifyFunds(getActiveClients(),drinkPrice);
     if(fundsFound){
       $.each(activeElements,function(index,element){
-	var userId = $(element).attr("user_id");
+	var clientId = $(element).attr("client_id");
 
-	// var user = Users.find(user_id).fetch("user_name")[0]["something"] = "assfuck";
+	// var client = Clients.find(client_id).fetch("client_name")[0]["something"] = "assfuck";
 	// Go through an array of drinks, each drink is a hash. Each drink hash
 	// has a number of drinks purchases, a day that they were purchased,
 	// the drink name, the drink id, and the drink price.
 	var drink_found = false; 
 
-	var user = Users.find(userId).fetch()[0];
-	var drinks = user["drinks"];
+	var client = Clients.find(clientId).fetch()[0];
+	var drinks = client.drinks
 
-	var userName = user["user_name"];
+	var clientName = client["client_name"];
 	
 	//set drinks if it's not there (defensive programming)
 	if(!drinks) drinks = [];
@@ -251,18 +310,18 @@ if (Meteor.isClient) {
 	  drinks.push(data);
 	}
 
-	Users.update(userId,{$set: {drinks: drinks}});
-	Users.update(userId,{$inc: {credit: -drinkPrice}});
+	Clients.update(clientId,{$set: {drinks: drinks}});
+	Clients.update(clientId,{$inc: {credit: -drinkPrice}});
 	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
 	if( !splitTabMode ){
           Drinks.update(drinkId,{$inc: {available: -1}});
 	}
-	// Users.update(userId,{$set: {active: ""}});
-	hash = Session.get("activeUsers");
-	hash[userId] = false;
-	Session.set("activeUsers",hash);
-      // Users.update(user);p
-	     // console.log(user);
+	// Clients.update(clientId,{$set: {active: ""}});
+	hash = Session.get("activeClients");
+	hash[clientId] = false;
+	Session.set("activeClients",hash);
+      // Clients.update(client);p
+	     // console.log(client);
       });
       $("#split_tab").removeClass("active");
       $(".select-all").removeClass("active");
@@ -274,14 +333,14 @@ if (Meteor.isClient) {
     'touchstart' : function(e){ e.stopImmediatePropagation(); },
     'click [name="drink"]' : function(e){
       $(e.target).closest("[name='drink']").toggleClass("active");
-      var elements = $("[name='user']");
+      var elements = $("[name='client']");
 
       var activeElements = [];
-      hash = Session.get("activeUsers");
+      hash = Session.get("activeClients");
 
       for(var id in hash){
 	if(hash[id]){
-	  activeElements.push($("[user_id='"+id+"']"));
+	  activeElements.push($("[client_id='"+id+"']"));
 	}
       }
       
@@ -312,18 +371,18 @@ if (Meteor.isClient) {
     // }
   };
 
-  Template.user.rendered = function(){
+  Template.client.rendered = function(){
     // if(this.rendered){
-      var hiddenUsers = Users.find( {hidden: true} ).fetch();
+      var hiddenclients = Clients.find( {hidden: true} ).fetch();
       var names = [];
       
-      hiddenUsers.forEach( function(user){
-    	names.push(user.user_name);
+      hiddenclients.forEach( function(client){
+    	names.push(client.client_name);
       });
-    $("#user_form .typeahead").first().typeahead({
+    $("#client_form .typeahead").first().typeahead({
 	source: names
     });
-    $("#user_form .typeahead").first().data('typeahead').source = names;
+    $("#client_form .typeahead").first().data('typeahead').source = names;
     // }
   };
 
@@ -367,65 +426,65 @@ if (Meteor.isClient) {
     return Drinks.find({hidden: false,available: {$gt: 0}}, {sort: {timestamp: -1, drink_name: 1}});
   };
   
-  Template.user_form.events({'keypress #user_form' : function(event, template) {
+  Template.client_form.events({'keypress #client_form' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
-      user_name = template.find("input[name='user-name']");
+      client_name = template.find("input[name='client-name']");
 
       // XXX Do form validation
       var data = {
-	user_name: user_name.value,
+	client_name: client_name.value,
 	timestamp: new Date(),
 	credit: 0,
 	active: "",
+	drinks : [],
 	hidden: false
       };
 
-      if (user_name.value === "")
+      if (client_name.value === "")
 	alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
-      else if ( Users.find({user_name: user_name.value}).fetch()[0] ){
-	userId = Users.find({user_name: user_name.value}).fetch()[0]._id;
-	Users.update(userId,{$set: {hidden: false}});
+      else if ( Clients.find({client_name: client_name.value}).fetch()[0] ){
+	clientId = Clients.find({client_name: client_name.value}).fetch()[0]._id;
+	Clients.update(clientId,{$set: {hidden: false}});
       }
-      else Users.insert(data);
-
-      user_name.value="";
+      else Clients.insert(data);
+      client_name.value="";
     }
   }});
 
-  Template.user.users = function() {
-    return Users.find({hidden: false}, {sort: {user_name: 1}});
+  Template.client.clients = function() {
+    return Clients.find({hidden: false}, {sort: {client_name: 1}});
   };
   
-  Template.drink_table.users = function() {
+  Template.drink_table.clients = function() {
     //if the day isn't selected, just use the current day
     // if( !Session.get("day") ) 
-    var userElement = $("[name='user']");
+    var clientElement = $("[name='client']");
     // var ids = [];
-    // if ( $(userElement).find("[input='checkbox']").prop("checked") ){
-    //   ids.push( $(element).attr("user_id") ) 
+    // if ( $(clientElement).find("[input='checkbox']").prop("checked") ){
+    //   ids.push( $(element).attr("client_id") ) 
     // }
     day = Session.get("day");
     
-    users = getActiveUsers();
-    users.forEach( function(user){
-      if(user.drinks){
+    clients = getActiveClients();
+    clients.forEach( function(client){
+      if(client.drinks){
 	var now = new Date();
 	var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
 	
-	var newDrinks = user.drinks.slice();
-	user.drinks.forEach( function(drink,index){
+	var newDrinks = client.drinks.slice();
+	client.drinks.forEach( function(drink,index){
 	  if(!drink["day"]) drink["day"] = new Date();
 	  if( drink["day"].getDate() !== day || drink.day.getTime() < aMonthBack) newDrinks.splice(newDrinks.indexOf(drink),1);
 	});
 
-	user.drinks = newDrinks;
+	client.drinks = newDrinks;
 
 	//clip credit to two decimals
-	user.credit = user.credit.toFixed(2);
+	client.credit = client.credit.toFixed(2);
       }
     });
-    return users;
+    return clients;
     
   };
 
@@ -437,18 +496,18 @@ if (Meteor.isClient) {
       if( isNaN(value) ) {
 	alert("You're a cocksucker, put a number in");
       }else{
-	users = getActiveUsers();
-	hash = Session.get("activeUsers");
-	$.each(users,function(index,user){
-	  Users.update(user["_id"],{$inc: {credit: value}});
-	  hash[user._id] = false;
+	clients = getActiveClients();
+	hash = Session.get("activeClients");
+	$.each(clients,function(index,client){
+	  Clients.update(client["_id"],{$inc: {credit: value}});
+	  hash[client._id] = false;
 	});
 	$.each($("[name='drink'][class='active']"),function(index,drink){
 	  drinkId = $(drink).attr("drink_id");
 	  Drinks.update(drinkId,{$inc: {available: parseFloat(value.toFixed(0))}});
 	});
 
-	Session.set("activeUsers",hash);
+	Session.set("activeClients",hash);
 	
       }
       credit.value = "";
@@ -457,17 +516,35 @@ if (Meteor.isClient) {
     
   }});
 
+  function isAdminMode(){
+    user = Meteor.users.find({}).fetch()[0];
+    if( user && user.profile && user.profile.name === "Noah Prince" ) return true;
+    return false;     
+  }
+  Template.add_cash.hidden = function(e){
+    if ( isAdminMode() ){
+      return "";
+    }
+    return "hidden";
+  }
+
+  Template.delete_stuff.hidden = function(e){
+    if ( isAdminMode() ){
+      return "";
+    }
+    return "hidden";
+  }
 
   function getDates() {
-    users = Users.find();
+    clients = Clients.find().fetch();
     var dates = [];
     // var displayDates =[];
-    users.forEach( function(user){
-      if(user.drinks){
-	user.drinks.forEach( function(drink){
+    clients.forEach( function(client){
+      if(client.drinks){
+	client.drinks.forEach( function(drink){
 	  var now = new Date();
 	  var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
-	  if(drink.day.getTime() > aMonthBack && !datesHasDate(dates,drink.day) ){
+	  if( drink.day && drink.day.getTime() > aMonthBack && !datesHasDate(dates,drink.day) ){
 	    dates.push( [drink.day,drink.day.toLocaleDateString()] );
 	    // displayDates.push( drink.day.getTime() );	    
 	  }
@@ -476,8 +553,8 @@ if (Meteor.isClient) {
       }
     });
 
-    if( dates.map(function(obj){ return (obj[0]).getDate(); }).indexOf( (new Date).getDate() ) > -1 ){
-	dates.push([new Date(),new Date().toLocaleDateString]);
+    if( datesHasDate(dates,new Date()) ){
+      dates.push([new Date(),(new Date()).toLocaleDateString()]);
     }
     
       return dates.sort(function(arr,arr2){ return arr[0].getTime() - arr2[0].getTime(); } ).reverse();
@@ -488,7 +565,7 @@ if (Meteor.isClient) {
     bool = false;
     dates.forEach(function(arr){
 	if( arr[0].getDate() === day.getDate() ) bool =  true;
-    })
+    });
     return bool;
   }
   
@@ -509,13 +586,18 @@ if (Meteor.isClient) {
 // code to run on server at startup
 if (Meteor.isServer) {
   Meteor.startup(function () {
-    Meteor.publish('users',function(){
-      return Users.find();
+    Meteor.publish('clients',function(){
+      return Clients.find();
     });
 
     Meteor.publish('drinks',function(){
       return Drinks.find();
+    });
+
+    Meteor.publish('users',function(){
+      return Users.find({_id: this.userId});
     });		   
+
   });
 
 }
