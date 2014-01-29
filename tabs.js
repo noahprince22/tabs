@@ -476,8 +476,8 @@ if (Meteor.isClient) {
       }
     });
 
-      if( !datesHasDate( dates, new Date()) ){
-	  dates.push([new Date(), (new Date()).toLocaleDateString()]);
+    if( dates.map(function(obj){ return (obj[0]).getDate(); }).indexOf( (new Date).getDate() ) > -1 ){
+	dates.push([new Date(),new Date().toLocaleDateString]);
     }
     
       return dates.sort(function(arr,arr2){ return arr[0].getTime() - arr2[0].getTime(); } ).reverse();
