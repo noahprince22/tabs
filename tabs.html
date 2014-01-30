@@ -7,6 +7,9 @@
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <!-- <script type="text/javascript" src="http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js"></script> -->
     <script type="text/javascript" src="http://blattchat.com/demos/typeahead/js/bootstrap-typeahead.js"></script>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    
     <!-- <script type="text/javascript" src="typeahead.js/typeahead.min.js"></script> -->
     <!-- <script src="http://cdn.jquerytools.org/1.2.6/jquery.tools.min.js" type="text/javascript"></script> -->
     <!-- <script type="text/javascript" "src=http://view.jqueryui.com/master/ui/jquery.ui.tooltip.js" ></script> -->
@@ -32,56 +35,65 @@
 
 
 <body>
-{{>delete_stuff}}
-    <button class="pull-right" id="hide_button"> Hide </button>
+  {{>delete_stuff}}
+  <button class="pull-right" id="hide_button"> Hide </button>
   <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
- {{>add_cash}}
-  <div class="container">
-    <h1 ><center id="fucked_up" href="#">Let's get fucked up!</center></h1>
-    <div class="row">
-      <div class="col-md-4">
-	<label class="control-label">Name</label>
-	{{>client}}
-	{{>client_form}}
-      </div>
-      <div class="col-md-7">
-        <div class="list-group">
-	  <thead>
-            <label class="control-label">Pick Your Poison</label>
-	  </thead>
-	  
-   	  {{>drink}}
-	  
-	  {{>drink_form}}
-        </div>
-	<button class="select-all" id="select_all">Select All</button> 
-	<button class="" title="Select this button and select one or more people to split the price of the next selected drink" id="split_tab"> Split Tab</button> 
+  {{>add_cash}}
+  <div class="container" id="slide_div">
+    <div class="container" id="main_container" >
+      <h1 ><center id="fucked_up" href="#">Let's get fucked up!</center></h1>
+      <div class="row">
+	<div class="col-md-4">
+	  <label class="control-label">Name</label>
+	  {{>client}}
+	  {{>client_form}}
+	</div>
+	<div class="col-md-7">
+          <div class="list-group">
+	    <thead>
+	      <label class="control-label">Pick Your Poison</label>
+	    </thead>
+	    
+   	    {{>drink}}
+	    
+	    {{>drink_form}}
+          </div>
+	  <button class="select-all" id="select_all">Select All</button> 
+	  <button class="" title="Select this button and select one or more people to split the price of the next selected drink" id="split_tab"> Split Tab</button> 
+	</div>
       </div>
     </div>
+    <div class="container douche-container">
+      <table class="table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
+	<tr>
+          <td>
+            <label>Name</label>
+          </td>
+          <td>
+            <label>Credits</label>
+          </td>
+          <td>
+	    <div class="pull-left">
+	      <label>Drinks</label>
+	    </div>
+	    <div class="pull-right">
+	      {{>dates_selector}}
+	    </div>
+          </td>
+	</tr>
+	<tbody>
+	  {{>drink_table}}
+	</tbody>
+      </table>
+    </div>
+
+	
   </div>
-  <div class="container douche-container">
-    <table class="table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
-      <tr>
-        <td>
-          <label>Name</label>
-        </td>
-        <td>
-          <label>Credits</label>
-        </td>
-        <td>
-	  <div class="pull-left">
-            <label>Drinks</label>
-	  </div>
-	  <div class="pull-right">
-	    {{>dates_selector}}
-	  </div>
-        </td>
-      </tr>
-      <tbody>
-      {{>drink_table}}
-      </tbody>
-    </table>
+
+  <div class="" id="hidden_container" >
+    {{>confirmation}}
   </div>
+
 </body>
 
 <template name="dates_selector" >
@@ -91,6 +103,54 @@
     {{/each}}
   </select>
 </template>
+
+<template name="confirmation">
+    <div class="container" id="confirm_container">
+      <h1 ><center id="confirm" href="#">Confirmation</center></h1>
+      <div class="row">
+	<div class="col-md-4">
+	  <center> 
+	    <label class="control-label">Name</label>
+	  </center>
+	  {{#each clients}}
+	  <center> 
+	    <label class="label"> {{name}} </label>
+	  </center>
+	  {{/each}}
+	</div>
+	<div class="col-md-4">
+	  <center> 
+	    <label class="control-label">New Credit</label>
+	  </center>
+	  {{#each clients}}
+	  <center>
+	    <label class="label"> {{credit}} </label>
+	  </center>
+	  {{/each}}
+	</div>
+	<div class="col-md-4">
+          <div class="list-group">
+	    <center> 
+	      <thead>
+		<label class="control-label">Drink</label>
+	      </thead>
+	    </center>
+	    {{#each clients}}
+	    <center> 
+	      <label class="label"> {{drink-name}} </label>
+	    </center>
+	    {{/each}}
+          </div>
+	</div>
+      </div>
+          <center>
+      <button class="btn cancel">Cancel</button>
+      <button class="btn confirm">Confirm</button>
+	  </center>
+    </div>
+
+</template>
+
 
 <template name="drink_table" >
       {{#each clients}}

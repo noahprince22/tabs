@@ -17,11 +17,29 @@ body *:not(button){
 
 .login-display-name{color: white }
 .login-button{background-color: white}
+
 #main {
     padding-top:20px;
 }
 
-/* .container:nth-of-type(2):before { */
+#main_container{
+    /* padding-top:16%; */
+    position:relative;
+}
+
+#hidden_container{
+    position: absolute;
+    z-index:-1;
+    /* bottom:auto; */
+    /* margin-left: 100%; */
+    /* float: none; */
+}
+/* #slide_div{ */
+/*     position: absolute; */
+/*     left: auto; */
+/*     top: auto; */
+/* } */
+/* /\* /\\* .container:nth-of-type(2):before { *\\/ *\/ */
 /*     background-color:rgba(0,0,0,1) */
 /* } */
 
@@ -56,6 +74,11 @@ h1 *{
 .control-label{
     color: #FD5700;
     font-size:150%;
+}
+
+.label{
+    color: #1f628d;
+    font-size:120%;
 }
 
 @media screen and (min-width: 480px)
@@ -162,6 +185,15 @@ table label{
 
 .select-all{
     width:100px;
+}
+
+.confirm{
+    width:49%;
+    background-color:green;
+}
+.cancel{
+    width:49%;
+    background-color:red;
 }
 
 #split_tab{

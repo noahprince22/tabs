@@ -7,6 +7,12 @@ if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
   Session.set("activeClients",{});
+  Session.set("confirmActives",[]);
+  Session.set("confirmDrink","");
+  Session.set("confirmPrice",0);
+  Session.set("confirmed",false);
+  Session.set("slideDivWidth",$("#slide_div").width())
+
   Meteor.subscribe( 'clients' );
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
@@ -96,6 +102,12 @@ if (Meteor.isClient) {
   });
 
   $(function () {
+    var p = $("#slide_div");
+      var offset = p.offset();
+      $("#hidden_container").offset({ top: offset.top, left: offset.left});
+      
+      $("#hidden_container .container").width( $("#slide_div").width() );
+      $("#confirm_container").height( $("#slide_div").height() );
     //lets get fucked up song
     $("#fucked_up").click(function(e){
       var win=window.open('http://www.youtube.com/watch?v=xSAxR6BgW3I', '_blank');
@@ -235,6 +247,7 @@ if (Meteor.isClient) {
     
   };
 
+
   function verifyFunds(clients,drinkPrice){
     var falseFound = false;
     clients.forEach(function(client){
@@ -247,6 +260,58 @@ if (Meteor.isClient) {
     return !falseFound;
 
   }
+
+  function hideMain(f){
+    $("#confirm_container").height( $("#slide_div").height() );
+
+    $("#slide_div").promise().done(function(){
+      $("#slide_div").toggle("slide");
+      // $("#slide_div").animate({"margin-left": '-=2000'});
+    });
+    $("#slide_div").promise().done(function(){
+      $("#confirm_container").height( $("#slide_div").height() );
+      $("#confirm_container").width( Session.get("slideDivWidth") );
+      $("#hidden_container").css("z-index", 4);
+      $(".confirm").click(function(){
+	f();
+	showMain();
+      });
+
+      $(".cancel").click(function(){return;});
+    });
+  }
+
+  function showMain(){
+    $("#slide_div").promise().done(function(){
+      // will be called when all the animations on the queue finish
+      // $("#slide_div").animate({"margin-left": '+=2000'});
+      $("#slide_div").toggle("slide");
+      $("#hidden_container").css("z-index", -1);
+    });
+    // $("#slide_div").promise().done(function(){
+    //   $("#hidden_container").toggleClass("hidden");
+    // });
+
+  }
+
+  Template.confirmation.clients = function(){
+    if(Session.get("confirmActives").length > 0){
+      data = [];
+    }else{
+      return null;
+    }
+    var i = 0
+    Session.get("confirmActives").forEach(function(client){
+      data[i] = { 
+	"drink-name":Session.get("confirmDrink"),
+	"credit":(parseFloat(client.credit) - Session.get("confirmPrice")).toFixed(2),
+	"name":client.client_name
+      }
+      i++;
+    });
+
+    return data
+  };
   
   function addDrinks(activeElements,drinkId){
     var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
@@ -260,73 +325,93 @@ if (Meteor.isClient) {
       drinkName = drinkName+" (splitTab)";
       Drinks.update(drinkId,{$inc: {available: -1}});
     }
-
     fundsFound = verifyFunds(getActiveClients(),drinkPrice);
+    // $("[name='client']").removeClass("active");
     if(fundsFound){
-      $.each(activeElements,function(index,element){
-	var clientId = $(element).attr("client_id");
+      Session.set("confirmActives",getActiveClients());
+      Session.set("confirmDrink",drinkName);
+      Session.set("confirmPrice",drinkPrice);
+      hideMain(function(){
+	$.each(getActiveClients(),function(index,client){
+	  var clientId = client._id
 
-	// var client = Clients.find(client_id).fetch("client_name")[0]["something"] = "assfuck";
-	// Go through an array of drinks, each drink is a hash. Each drink hash
-	// has a number of drinks purchases, a day that they were purchased,
-	// the drink name, the drink id, and the drink price.
-	var drink_found = false; 
+	  // var client = Clients.find(client_id).fetch("client_name")[0]["something"] = "assfuck";
+	  // Go through an array of drinks, each drink is a hash. Each drink hash
+	  // has a number of drinks purchases, a day that they were purchased,
+	  // the drink name, the drink id, and the drink price.
+	  var drink_found = false; 
 
-	var client = Clients.find(clientId).fetch()[0];
-	var drinks = client.drinks
+	  var client = client
+	  var drinks = client.drinks
 
-	var clientName = client["client_name"];
-	
-	//set drinks if it's not there (defensive programming)
-	if(!drinks) drinks = [];
-	
-	$.each(drinks,function(index,drink){
-	  if( drink ) {
-	    //defensive programming stuff. make sure drink.day and currentDay have something
-	    if( !drink["day"] ) drink.day = new Date();
-	    if( !currentDay ) currentDay = new Date();
-	    
-	    var sameDay = drink["day"].getDate() === currentDay.getDate(); 
-	    var sameName = drink["name"] === drinkName;
-	    var sameId = drink["drink_id"] === drinkId;
-	    var samePrice = drink.price === drinkPrice;
-	    
-	    if( sameDay && sameName && sameId && samePrice) {
-	      drink["number"] = parseFloat(drink["number"])+1;
-	      drink_found = true;
+	  var clientName = client["client_name"];
+	  
+	  //set drinks if it's not there (defensive programming)
+	  if(!drinks) drinks = [];
+	  
+	  $.each(drinks,function(index,drink){
+	    if( drink ) {
+	      //defensive programming stuff. make sure drink.day and currentDay have something
+	      if( !drink["day"] ) drink.day = new Date();
+	      if( !currentDay ) currentDay = new Date();
+	      
+	      var sameDay = drink["day"].getDate() === currentDay.getDate(); 
+	      var sameName = drink["name"] === drinkName;
+	      var sameId = drink["drink_id"] === drinkId;
+	      var samePrice = drink.price === drinkPrice;
+	      
+	      if( sameDay && sameName && sameId && samePrice) {
+		drink["number"] = parseFloat(drink["number"])+1;
+		drink_found = true;
+	      }
 	    }
+	  });
+	  
+	  //if the drink didn't already exist make a blank one
+	  if(!drink_found){
+	    var data = {
+	      'day': new Date(),
+	      'name': drinkName,
+	      'drink_id': drinkId,
+	      'number': 1,
+	      'price': drinkPrice
+	    };
+	    drinks.push(data);
 	  }
-	});
-	
-	//if the drink didn't already exist make a blank one
-	if(!drink_found){
-	  var data = {
-	    'day': new Date(),
-	    'name': drinkName,
-	    'drink_id': drinkId,
-	    'number': 1,
-	    'price': drinkPrice
-	  };
-	  drinks.push(data);
-	}
 
-	Clients.update(clientId,{$set: {drinks: drinks}});
-	Clients.update(clientId,{$inc: {credit: -drinkPrice}});
-	Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
-	if( !splitTabMode ){
-          Drinks.update(drinkId,{$inc: {available: -1}});
-	}
-	// Clients.update(clientId,{$set: {active: ""}});
-	hash = Session.get("activeClients");
-	hash[clientId] = false;
-	Session.set("activeClients",hash);
-      // Clients.update(client);p
-	     // console.log(client);
+	  Clients.update(clientId,{$set: {drinks: drinks}});
+	  Clients.update(clientId,{$inc: {credit: -drinkPrice}});
+	  Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
+	  if( !splitTabMode ){
+            Drinks.update(drinkId,{$inc: {available: -1}});
+	  }
+	  // Clients.update(clientId,{$set: {active: ""}});
+	  hash = Session.get("activeClients");
+	  hash[clientId] = false;
+	  Session.set("activeClients",hash);
+	  // Clients.update(client);p
+	  // console.log(client);
+	});
+	$("#split_tab").removeClass("active");
+	$(".select-all").removeClass("active");
+
+	// $("#main_container").animate({width: 'toggle'})
+	//set
+	// $("#slide_div").animate({"margin-left": '+=2000'});
+	// $("#hidden_container").toggleClass("hidden");
+	// // $lefty.animate({
+	// 	left: parseInt($lefty.css('left'),10) == 0 ?
+	// 	  -$lefty.outerWidth() :
+	// 	  0
+	// });
+	// $lefty.animate({
+	// 	left: parseInt($lefty.css('left'),10) == 0 ?
+	// 	  -$lefty.outerWidth() :
+	// 	  0
+	// });
+	
       });
-      $("#split_tab").removeClass("active");
-      $(".select-all").removeClass("active");
     }
-   
   }
   
   Template.drink.events = {
