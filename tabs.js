@@ -11,7 +11,6 @@ if (Meteor.isClient) {
   Session.set("confirmDrink","");
   Session.set("confirmPrice",0);
   Session.set("confirmed",false);
-  Session.set("slideDivWidth",$("#slide_div").width())
 
   Meteor.subscribe( 'clients' );
   Meteor.subscribe( 'drinks' );
@@ -106,8 +105,8 @@ if (Meteor.isClient) {
       var offset = p.offset();
       $("#hidden_container").offset({ top: offset.top, left: offset.left});
       
-      $("#hidden_container .container").width( $("#slide_div").width() );
-      $("#confirm_container").height( $("#slide_div").height() );
+      $("#confirm_container").width( $("#slide_div").width() );
+      $("#confirm_container").height( $("#slide_div .container").height() );
     //lets get fucked up song
     $("#fucked_up").click(function(e){
       var win=window.open('http://www.youtube.com/watch?v=xSAxR6BgW3I', '_blank');
@@ -262,55 +261,60 @@ if (Meteor.isClient) {
   }
 
   function hideMain(f){
-    $("#confirm_container").height( $("#slide_div").height() );
-
     $("#slide_div").promise().done(function(){
-      $("#slide_div").toggle("slide");
+      $("#slide_div").toggle("slide",{"direction": "left"});
+      $("#hidden_container").toggle("slide",{"direction":"right"})
       // $("#slide_div").animate({"margin-left": '-=2000'});
     });
     $("#slide_div").promise().done(function(){
-      $("#confirm_container").height( $("#slide_div").height() );
-      $("#confirm_container").width( Session.get("slideDivWidth") );
-      $("#hidden_container").css("z-index", 4);
+      // $("#hidden_container").css("z-index", 4);
       $(".confirm").click(function(){
 	f();
 	showMain();
       });
 
-      $(".cancel").click(function(){return;});
+      $(".cancel").click(function(){showMain();});
     });
   }
 
   function showMain(){
+    $("#hidden_container").toggle("slide",{"direction":"right"})
     $("#slide_div").promise().done(function(){
       // will be called when all the animations on the queue finish
       // $("#slide_div").animate({"margin-left": '+=2000'});
-      $("#slide_div").toggle("slide");
-      $("#hidden_container").css("z-index", -1);
+      $("#slide_div").toggle("slide",{"direction":"left"});
+      // $("#hidden_container").css("z-index", -1);
     });
     // $("#slide_div").promise().done(function(){
     //   $("#hidden_container").toggleClass("hidden");
     // });
 
-  }
+  };
 
+  Template.confirmation.rendered = function(){
+    var oldHeight = $("#slide_div .container").height();
+    var oldWidth = $("#slide_div .container").width();
+    $("#confirm_container").height( oldHeight );
+    $("#confirm_container").width( oldWidth+10 );
+  };
+  
   Template.confirmation.clients = function(){
     if(Session.get("confirmActives").length > 0){
       data = [];
     }else{
       return null;
     }
-    var i = 0
+    var i = 0;
     Session.get("confirmActives").forEach(function(client){
       data[i] = { 
 	"drink-name":Session.get("confirmDrink"),
 	"credit":(parseFloat(client.credit) - Session.get("confirmPrice")).toFixed(2),
 	"name":client.client_name
-      }
+      };
       i++;
     });
 
-    return data
+    return data;
   };
   
   function addDrinks(activeElements,drinkId){

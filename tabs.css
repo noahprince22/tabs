@@ -27,13 +27,44 @@ body *:not(button){
     position:relative;
 }
 
+@media screen and (min-width: 650px)
+{
+    button:hover, button:hover div{
+		      background-color:#FFAC69;
+		  }
+
+    button:active, button:active div{
+		       background-color:blue;
+		   }
+    button:active div{
+	color:#FD7C39;
+    }
+
+
+}
+
+/* #mobile only */
+@media screen and (max-width:650px){
+    #hidden_container{
+	left:0;
+	right:0;
+    }
+    
+}
+				    
+
+
 #hidden_container{
     position: absolute;
-    z-index:-1;
+    /* z-index:-1; */
+    display:none;
+    /* margin-right:100%; */
+
     /* bottom:auto; */
     /* margin-left: 100%; */
     /* float: none; */
 }
+
 /* #slide_div{ */
 /*     position: absolute; */
 /*     left: auto; */
@@ -81,20 +112,6 @@ h1 *{
     font-size:120%;
 }
 
-@media screen and (min-width: 480px)
-{
-    button:hover, button:hover div{
-		      background-color:#FFAC69;
-		  }
-
-    button:active, button:active div{
-		       background-color:blue;
-		   }
-    button:active div{
-	color:#FD7C39;
-    }
-
-}
 
 button.active{
     /* background-color:#FFAC69; */
