@@ -639,12 +639,12 @@ if (Meteor.isClient) {
 		}
 		else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
 	    }
-	});
 
 
-      Session.set("user",user._id);
-      Session.set("user_name",user.profile.name);
-      
+
+	    Session.set("user",user._id);
+	    Session.set("user_name",user.profile.name);
+	});      
     });
       
     if( isMobile() ){
