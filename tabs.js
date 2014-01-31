@@ -609,30 +609,37 @@ if (Meteor.isClient) {
 	user_id: user._id,
 	hidden: false
       };
-      if (user.profile.name === "")
-	alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
-      else if( Clients.find({user_id: user._id}).fetch()[0] ) {
-	clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
-	Clients.update(clientId,{$set: {hidden: false}});	
-      }
-      // else if( Clients.find({client_name: user.profile.name}).fetch()[0] ){
-	  // clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
-	  // Clients.update(clientId,{$set: {hidden: false}});	
-      // }
-      else if ( Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0] &&!("user_id" in Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0]) ){
-	oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
-	var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
-	var retVal = confirm( stringy );
-      	if( retVal == true ){
-      	  clientId = oldUser._id
-      	  Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
-      	}
-	if ( !retVal ) {
-	  Clients.insert(data);
-	}
-      }
-      else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
-
+	//note, this was a race condition for the page to load, it was using bad information because
+	//the page hadn't loaded yet
+	$(document).load(function(){
+	    if( Clients.find().fetch().length !=0 ){
+		if (user.profile.name === "")
+		    alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+		else if( Clients.find({user_id: user._id}).fetch()[0] ) {
+		    clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
+		    if( Clients.find(clientId).fetch()[0].hidden )
+			Clients.update(clientId,{$set: {hidden: false}});	
+		}
+		else if( Clients.find({client_name: user.profile.name}).fetch()[0] ){
+		    clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
+		    if( Clients.find(clientId).fetch()[0].hidden )
+			Clients.update(clientId,{$set: {hidden: false}});	
+		}
+		else if ( Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0] &&!("user_id" in Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0]) ){
+		    oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
+		    var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
+		    var retVal = confirm( stringy );
+      		    if( retVal == true ){
+      			clientId = oldUser._id
+      			Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
+      		    }
+		    if ( !retVal ) {
+			Clients.insert(data);
+		    }
+		}
+		else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
+	    }
+	});
 
 
       Session.set("user",user._id);
