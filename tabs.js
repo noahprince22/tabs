@@ -2,7 +2,7 @@
 // Users = new Meteor.Collection("users");
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
-
+Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.ngrok.com"});
 if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
@@ -691,7 +691,7 @@ if (Meteor.isServer) {
     });
 
     Meteor.publish('users',function(){
-      return Users.find({_id: this.userId});
+      return Meteor.users.find({_id: this.userId});
     });		   
 
   });
