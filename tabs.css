@@ -61,6 +61,16 @@ body *:not(button){
 	display:none;
     }
     
+    #add_cash{
+	display:none;
+    }
+    #delete_button {
+	display:none;
+    }
+    #hide_button {
+	display:none;
+    }
+    
 }
 				    
 
