@@ -268,17 +268,24 @@ debugger;
     });
     $("#slide_div").promise().done(function(){
       // $("#hidden_container").css("z-index", 4);
-      $(".confirm").click(function(){
+      $(".confirm").bind("click.confClick", function(){
+				
 	f();
 	showMain();
+	$(".confirm").unbind("click.confClick");
+	$(".cancel").unbind("click.confClick");
       });
 
-      $(".cancel").click(function(){showMain();});
+      $(".cancel").bind("click.confClick", function(){
+	showMain();
+	$(".confirm").unbind("click.confClick");
+	$(".cancel").unbind("click.confClick");
+      });
     });
   }
 
   function showMain(){
-    $("#hidden_container").toggle("slide",{"direction":"right"})
+    $("#hidden_container").toggle("slide",{"direction":"right"});
     $("#slide_div").promise().done(function(){
       // will be called when all the animations on the queue finish
       // $("#slide_div").animate({"margin-left": '+=2000'});
