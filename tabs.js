@@ -2,7 +2,14 @@
 // Users = new Meteor.Collection("users");
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
-Meteor.absoluteUrl("/",{'rootUrl':"tabber.ngrok.com"});
+Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.ngrok.com"});
+
+    Accounts.loginServiceConfiguration.insert({
+        service: 'twitter',
+        consumerKey: 'ZjSU7uIpDflc1m8sxIH0g',
+        secret: 'yIXQyct7B9FU6JHKRJBGGnNAFmB6wcsJvy4QbSV8cGY'
+    });
+
 if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
@@ -20,7 +27,7 @@ if (Meteor.isClient) {
   }
 
   if( isMobile() ){
-    userId = Users.find().fetch()[0]._id
+    userId = Users.find().fetch()[0]._id;
     client = Clients.find({user_id: userId}).fetch()[0];
     var string = client._id;
     Session.set("activeClients",{string: true});
@@ -714,7 +721,7 @@ if (Meteor.isServer) {
     //   }) //Added close parenthesis.
     // }
 
-        
+
     Meteor.publish('users',function(){
       return Meteor.users.find({_id: this.userId});
     });		   
