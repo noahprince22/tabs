@@ -15,7 +15,7 @@ if (Meteor.isClient) {
   Meteor.subscribe( 'clients' );
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
-
+debugger;
   function getActiveClients(){
       hash = Session.get("activeClients");
       returnClients = [];
