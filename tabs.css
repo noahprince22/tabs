@@ -40,14 +40,25 @@ body *:not(button){
 	color:#FD7C39;
     }
 
-
 }
 
 /* #mobile only */
 @media screen and (max-width:650px){
+    #clients{
+	display:none;
+    }
+	
     #hidden_container{
 	left:0;
 	right:0;
+    }
+
+    #split_tab{
+	display:none;
+    }
+
+    .select-all{
+	display:none;
     }
     
 }

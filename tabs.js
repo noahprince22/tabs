@@ -2,7 +2,7 @@
 // Users = new Meteor.Collection("users");
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
-
+Meteor.absoluteUrl("/",{'rootUrl':"tabber.ngrok.com"});
 if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
@@ -15,7 +15,17 @@ if (Meteor.isClient) {
   Meteor.subscribe( 'clients' );
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
-debugger;
+  function isMobile(){
+    return $(window).width() < 650;
+  }
+
+  if( isMobile() ){
+    userId = Users.find().fetch()[0]._id
+    client = Clients.find({user_id: userId}).fetch()[0];
+    var string = client._id;
+    Session.set("activeClients",{string: true});
+  }
+
   function getActiveClients(){
       hash = Session.get("activeClients");
       returnClients = [];
@@ -397,9 +407,11 @@ debugger;
             Drinks.update(drinkId,{$inc: {available: -1}});
 	  }
 	  // Clients.update(clientId,{$set: {active: ""}});
-	  hash = Session.get("activeClients");
-	  hash[clientId] = false;
-	  Session.set("activeClients",hash);
+	  if( !isMobile() ){
+	    hash = Session.get("activeClients");
+	    hash[clientId] = false;
+	    Session.set("activeClients",hash);
+	  }
 	  // Clients.update(client);p
 	  // console.log(client);
 	});
@@ -689,9 +701,22 @@ if (Meteor.isServer) {
     Meteor.publish('drinks',function(){
       return Drinks.find();
     });
+    // if ( Meteor.users.find().count() === 0 ) {
+    //   Accounts.createUser({
+    // 	username: 'username',
+    // 	email: 'email',
+    // 	password: 'asdfasdf',
+    // 	profile: {
+    // 	  first_name: 'fname',
+    // 	  last_name: 'lname',
+    // 	  company: 'company',
+    // 	}
+    //   }) //Added close parenthesis.
+    // }
 
+        
     Meteor.publish('users',function(){
-      return Users.find({_id: this.userId});
+      return Meteor.users.find({_id: this.userId});
     });		   
 
   });
