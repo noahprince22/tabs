@@ -3,18 +3,18 @@
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
 // Meteor.absoluteUrl("/",{'rootUrl':"http://tabtest.ngrok.com"});
-
+if(Accounts.loginServiceConfiguration.find({service: "twitter"}).fetch().length == 0 ){
     Accounts.loginServiceConfiguration.insert({
         service: 'twitter',
         consumerKey: 'ZjSU7uIpDflc1m8sxIH0g',
         secret: 'yIXQyct7B9FU6JHKRJBGGnNAFmB6wcsJvy4QbSV8cGY'
     });
-
-    Accounts.loginServiceConfiguration.insert({
-        service: 'facebook',
-        consumerKey: '528102830641511',
-        secret: 'ab6ee54486e337cf1694c8989aeb3a71'
-    });
+}
+    //Accounts.loginServiceConfiguration.insert({
+       // service: 'facebook',
+     //   consumerKey: '528102830641511',
+      //  secret: 'ab6ee54486e337cf1694c8989aeb3a71'
+   // });
 
 if (Meteor.isClient) {
   var currentDay;
