@@ -22,6 +22,10 @@ body *:not(button){
     padding-top:20px;
 }
 
+.banner_signin{
+    background-color: white;
+    color: black;
+}
 #main_container{
     /* padding-top:16%; */
     position:relative;
@@ -33,12 +37,9 @@ body *:not(button){
 		      background-color:#FFAC69;
 		  }
 
-    button:active, button:active div{
-		       background-color:blue;
-		   }
-    button:active div{
-	color:#FD7C39;
-    }
+    /* button:active div{ */
+    /* 	color:#FD7C39; */
+    /* } */
 
 }
 

@@ -25,7 +25,17 @@ if (Meteor.isClient) {
   function isMobile(){
     return $(window).width() < 650;
   }
+  function getInactiveClients(){
+      hash = Session.get("activeClients");
+      returnClients = [];
 
+      clients = Clients.find({},{sort: {client_name: 1}});
+      clients.forEach(function(client){
+	if(!hash[client._id]) returnClients.push(client);
+      });
+      return returnClients; 
+
+  }
   function getActiveClients(){
       hash = Session.get("activeClients");
       returnClients = [];
@@ -64,116 +74,6 @@ if (Meteor.isClient) {
     }
 
 
-
-  $(function () {
-    var p = $("#slide_div");
-      var offset = p.offset();
-      $("#hidden_container").offset({ top: offset.top, left: offset.left});
-      
-      $("#confirm_container").width( $("#slide_div").width() );
-      $("#confirm_container").height( $("#slide_div .container").height() );
-    //lets get fucked up song
-    $("#fucked_up").click(function(e){
-      var win=window.open('http://www.youtube.com/watch?v=xSAxR6BgW3I', '_blank');
-      win.focus();
-    });
-    
-    $("a").click(function(e) {
-      var x = e.pageX - this.offsetLeft - 20;
-      var y = e.pageY - this.offsetTop + 22;
-      $(".tooltip").show().css({
-	left: x,
-	top: y
-      }).delay(3000).fadeOut();
-      return false;
-    });
-
-    $(".tooltip").click(function() {
-      $(this).hide();
-    });
-    
-    $("#delete_button").click( function(){
-      var retVal = confirm("Do you want to continue? Shit gon get deleted. Don't press OK unless you're sober");
-      if( retVal == true ){
-
-	$.each($("[name='drink']"),function(index,element){
-	  if($(element).hasClass("active")){
-	    var id = $(element).attr("drink_id");
-	    Drinks.remove(id);
-	  }
-	});
-
-	$.each($("[name='client']"),function(index,element){
-	  if($(element).hasClass("active")){
-	    var id = $(element).attr("client_id");	   
-	    Clients.remove(id);
-	  }
-	});
-
-	return true;
-      }else{
-	return false;
-      }
-      
-    });
-    
-
-    $("#hide_button").click( function(){
-      var retVal = confirm("We're just gonna shove this somewhere....");
-      if( retVal == true ){
-
-	$.each($("[name='drink']"),function(index,element){
-	  if($(element).hasClass("active")){
-	    var id = $(element).attr("drink_id");
-	    Drinks.update(id,{$set:{hidden:true}});
-	  }
-	});
-
-	hash = Session.get("activeClients");
-	$.each(getActiveClients(),function(index,client){
-	  if(hash[client._id]){
-	    Clients.update(client._id,{$set: {hidden:true}});
-	    hash[client._id] = false;
-	  }
-	});
-	Session.set("activeClients",hash);
-	
-	return true;
-      }else{
-	return false;
-      }
-      
-    });
-
-    $("#split_tab").click( function(e){
-      $(this).toggleClass("active");
-    });
-    
-    $(".select-all").click( function(e){
-      $(this).toggleClass("active");
-      clients = Clients.find({hidden: false});
-      hash = Session.get("activeClients");
-      
-      if( $(this).hasClass("active") ){
-	clients.forEach(function(client){
-	  hash[client._id] = true;
-	  $("[client_id='"+client._id+"']").addClass("active");
-	});
-
-	Session.set("activeClients",hash);
-	// setAllClients(Clients,{active:"active"});
-      }else{
-	clients.forEach(function(client){
-	  hash[client._id] = false;
-	  $("[client_id='"+client._id+"']").removeClass("active");
-	});
-
-	Session.set("activeClients",hash);
-      }
-
-    });
-  });
-
     // if( Meteor.users.find({_id: Session.get("user")}).fetch()[0] )
     // // onlineUsers.forEach(function(user){
     //   if ( Clients.find({client_name: Session.get("user")}).fetch()[0] ){
@@ -182,6 +82,29 @@ if (Meteor.isClient) {
     //   }
       
     // });
+  function isUser(){
+    return !!Meteor.users.find().fetch()[0];
+  }
+  Template.main.is_user = function(){
+	  return isUser();
+  };
+  Template.main.is_mobile = function(){
+	  return isMobile();
+  };
+  Template.main.has_funds = function(){
+    // if( getActiveClients().length == 0 ) return true;
+    user = Meteor.users.find().fetch()[0];
+    var client = null;
+
+    if( user ) {userId = user._id
+		client = Clients.find({user_id: userId}).fetch()[0];
+	       }
+    if( client ){
+      return verifyFunds([client],0.01,true);
+    }
+    return true;
+  }
+
 
   Template.client.events = {
     'touchstart' : function(e){ e.stopImmediatePropagation(); },
@@ -196,35 +119,50 @@ if (Meteor.isClient) {
 	hash[clientId] = false; 
 	// var thing = Clients.update(clientId,{$set: {active: ""}});
       }
-      else
+      else{
 	hash[clientId] = true;
+      }
 
-      $(element).toggleClass("active");
       Session.set("activeClients",hash);
       $("[name='drink']").removeClass("active");
 
-      $(element).click(function(e) {
-	e.stopPropagation();
-      });
-     
     }
     
   };
 
 
-  function verifyFunds(clients,drinkPrice){
+  function verifyFunds(clients,drinkPrice,quiet){
+    if(arguments.length==2) quiet = false;
     var falseFound = false;
     clients.forEach(function(client){
       var newCredit = parseFloat(client.credit)-parseFloat(drinkPrice);
       if( newCredit < 0 ) {
-	alert("Hey "+client.client_name+" you fucking deadbeat, you're out of credit.");
+
+	if( !quiet ){
+	  alert("Hey "+client.client_name+" you fucking deadbeat, you're out of credit.");
+	}
+	
 	falseFound=true;
       }
     });
     return !falseFound;
 
   }
+  function setSlideSize(){
+    var p = $("#slide_div");
+    var oldHeight = $("#slide_div").height();
+    var oldWidth = $("#slide_div").width();
+    if(p.length != 0){
+      var offset = p.offset();
+      $("#hidden_container").offset({ top: offset.top, left: offset.left});
+      
+      $("#confirm_container").width( oldWidth +10);
+      $("#confirm_container").height( oldHeight );
+    }
+  }
 
+
+  
   function hideMain(f){
     $("#slide_div").promise().done(function(){
       $("#slide_div").toggle("slide",{"direction": "left"});
@@ -250,6 +188,7 @@ if (Meteor.isClient) {
   }
 
   function showMain(){
+    
     $("#hidden_container").toggle("slide",{"direction":"right"});
     $("#slide_div").promise().done(function(){
       // will be called when all the animations on the queue finish
@@ -263,13 +202,16 @@ if (Meteor.isClient) {
 
   };
 
-  Template.confirmation.rendered = function(){
-    var oldHeight = $("#slide_div .container").height();
-    var oldWidth = $("#slide_div .container").width();
-    $("#confirm_container").height( oldHeight );
-    $("#confirm_container").width( oldWidth+10 );
-  };
+  // Template.confirmation.rendered = function(){;
+    // var oldWidth = $("#slide_div .container;").heiwidth
+					      // var oldWidth = $("#slide_div .container").()width();
+					      // $("#confirm_container").height( oldHeig()ht );
+    // $("#confirm_container").width( oldWidth+10 );
+  // };
   
+  Template.confirmation.rendered = function(){
+    setSlideSize();
+  };
   Template.confirmation.clients = function(){
     if(Session.get("confirmActives").length > 0){
       data = [];
@@ -278,7 +220,7 @@ if (Meteor.isClient) {
     }
     var i = 0;
     Session.get("confirmActives").forEach(function(client){
-      data[i] = { 
+      data[i] = {
 	"drink-name":Session.get("confirmDrink"),
 	"credit":(parseFloat(client.credit) - Session.get("confirmPrice")).toFixed(2),
 	"name":client.client_name
@@ -433,6 +375,7 @@ if (Meteor.isClient) {
     $("#drink_form .typeahead").first().data('typeahead').source = names;
     // }
   };
+  
 
   Template.client.rendered = function(){
     // if(this.rendered){
@@ -442,6 +385,7 @@ if (Meteor.isClient) {
       hiddenclients.forEach( function(client){
     	names.push(client.client_name);
       });
+
     $("#client_form .typeahead").first().typeahead({
 	source: names
     });
@@ -518,6 +462,8 @@ if (Meteor.isClient) {
   Template.client.clients = function() {
     return Clients.find({hidden: false}, {sort: {client_name: 1}});
   };
+
+  
   
   Template.drink_table.clients = function() {
     //if the day isn't selected, just use the current day
@@ -687,9 +633,15 @@ if (Meteor.isClient) {
       Session.set("user_name",user.profile.name);
       
     });
+      
     if( isMobile() ){
-      userId = Meteor.users.find().fetch()[0]._id;
-      client = Clients.find({user_id: userId}).fetch()[0];
+      user = Meteor.users.find().fetch()[0];
+      client = null;
+      if( user ) {
+	userId = user._id
+	client = Clients.find({user_id: userId}).fetch()[0];
+      }
+      
       if(client){
     	var string = client._id;
     	hash = Session.get("activeClients");
@@ -697,10 +649,120 @@ if (Meteor.isClient) {
 	Session.set("activeClients",hash);
       }
     }
+      getActiveClients().forEach( function(client){
+      $("[name='client'][client_id='"+client._id+"']").addClass("active");
+      });
 
+      getInactiveClients().forEach( function(client){
+      $("[name='client'][client_id='"+client._id+"']").removeClass("active");
+      });      
 
   });
 
+  $(function () {
+    if(Template.main.has_funds){
+    //lets get fucked up song
+    $("#fucked_up").click(function(e){
+      var win=window.open('http://www.youtube.com/watch?v=xSAxR6BgW3I', '_blank');
+      win.focus();
+    });
+    
+    $("a").click(function(e) {
+      var x = e.pageX - this.offsetLeft - 20;
+      var y = e.pageY - this.offsetTop + 22;
+      $(".tooltip").show().css({
+	left: x,
+	top: y
+      }).delay(3000).fadeOut();
+      return false;
+    });
+
+    $(".tooltip").click(function() {
+      $(this).hide();
+    });
+    
+    $("#delete_button").click( function(){
+      var retVal = confirm("Do you want to continue? Shit gon get deleted. Don't press OK unless you're sober");
+      if( retVal == true ){
+
+	$.each($("[name='drink']"),function(index,element){
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("drink_id");
+	    Drinks.remove(id);
+	  }
+	});
+
+	$.each($("[name='client']"),function(index,element){
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("client_id");	   
+	    Clients.remove(id);
+	  }
+	});
+
+	return true;
+      }else{
+	return false;
+      }
+      
+    });
+    
+
+    $("#hide_button").click( function(){
+      var retVal = confirm("We're just gonna shove this somewhere....");
+      if( retVal == true ){
+
+	$.each($("[name='drink']"),function(index,element){
+	  if($(element).hasClass("active")){
+	    var id = $(element).attr("drink_id");
+	    Drinks.update(id,{$set:{hidden:true}});
+	  }
+	});
+
+	hash = Session.get("activeClients");
+	$.each(getActiveClients(),function(index,client){
+	  if(hash[client._id]){
+	    Clients.update(client._id,{$set: {hidden:true}});
+	    hash[client._id] = false;
+	  }
+	});
+	Session.set("activeClients",hash);
+	
+	return true;
+      }else{
+	return false;
+      }
+      
+    });
+
+    $("#split_tab").click( function(e){
+      $(this).toggleClass("active");
+    });
+    
+    $(".select-all").click( function(e){
+      $(this).toggleClass("active");
+      clients = Clients.find({hidden: false});
+      hash = Session.get("activeClients");
+      
+      if( $(this).hasClass("active") ){
+	clients.forEach(function(client){
+	  hash[client._id] = true;
+	  $("[client_id='"+client._id+"']").addClass("active");
+	});
+
+	Session.set("activeClients",hash);
+	// setAllClients(Clients,{active:"active"});
+      }else{
+	clients.forEach(function(client){
+	  hash[client._id] = false;
+	  $("[client_id='"+client._id+"']").removeClass("active");
+	});
+
+	Session.set("activeClients",hash);
+      }
+
+    });
+    }
+  });
 
 }
 

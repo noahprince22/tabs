@@ -36,36 +36,100 @@
 
 <body>
   {{>delete_stuff}}
+  {{>main}}
   <button class="pull-right" id="hide_button"> Hide </button>
   <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
+</body>
+
+<template name="main" >
+
   {{>add_cash}}
+
+  {{#if is_mobile}}
+
+    {{#unless is_user}}
+      {{>banner}}
+    {{else}}
+ 
+      {{#unless has_funds}}
+        {{>need_credit}}
+  {{else}}
+  {{>main_ui}}
+
+      {{/unless}}
+  
+    {{/unless}}
+  
+  {{else}}
+      {{>main_ui}}
+  {{/if}}
+  
+</template>
+  
+<template name="dates_selector" >
+  <select class="form-control">
+    {{#each dates}}
+    <option value="{{ this.[0] }}">{{this.[1]}}</option>
+    {{/each}}
+  </select>
+</template>
+
+<template name="banner">
+  <div class="container">
+    <div class="row">
+      <div class="span6">
+	<div class="well">
+	  <h4 class="banner_signin">Sign in using Twitter or Facebook to start tracking your drinks</h4>
+	  {{loginButtons}}
+	</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template name="need_credit">
+  <div class="container">
+    <div class="row">
+      <div class="span6">
+	<div class="well">
+	  <h4 class="banner_signin">It looks like you're out of credit. Prepay your tab by giving money to the host of the pregame. Any money left at the end of the night can be refunded to you, or stored for the next pregame.</h4>
+	</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+
+<template name="main_ui">
+
   <div class="container" id="slide_div">
     <div class="container" id="main_container" >
-      <h1 ><center id="fucked_up" href="#">Let's get fucked up!</center></h1>
+
+      <h1 ><center id="fucked_up" href="#">Tabs</center></h1>
       <div class="row">
-	<div id="clients" class="col-md-4">
-	  <label class="control-label">Name</label>
-	  {{>client}}
-	  {{>client_form}}
-	</div>
-	<div class="col-md-7">
+  	<div id="clients" class="col-md-4">
+  	  <label class="control-label">Name</label>
+  	  {{>client}}
+  	  {{>client_form}}
+  	</div>
+  	<div class="col-md-7">
           <div class="list-group">
-	    <thead>
-	      <label class="control-label">Pick Your Poison</label>
-	    </thead>
+  	    <thead>
+  	      <label class="control-label">Pick Your Poison</label>
+  	    </thead>
 	    
    	    {{>drink}}
 	    
-	    {{>drink_form}}
+  	    {{>drink_form}}
           </div>
-	  <button class="select-all" id="select_all">Select All</button> 
-	  <button class="" title="Select this button and select one or more people to split the price of the next selected drink" id="split_tab"> Split Tab</button> 
-	</div>
+  	  <button class="select-all" id="select_all">Select All</button>
+  	  <button class="" title="Select this button and select one or more people to split the price of the next selected drink" id="split_tab"> Split Tab</button>
+  	</div>
       </div>
     </div>
     <div class="container douche-container">
       <table class="table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
-	<tr>
+  	<tr>
           <td>
             <label>Name</label>
           </td>
@@ -73,35 +137,24 @@
             <label>Credits</label>
           </td>
           <td>
-	    <div class="pull-left">
-	      <label>Drinks</label>
-	    </div>
-	    <div class="pull-right">
-	      {{>dates_selector}}
-	    </div>
+  	    <div class="pull-left">
+  	      <label>Drinks</label>
+  	    </div>
+  	    <div class="pull-right">
+  	      {{>dates_selector}}
+  	    </div>
           </td>
-	</tr>
-	<tbody>
-	  {{>drink_table}}
-	</tbody>
+  	</tr>
+  	<tbody>
+  	  {{>drink_table}}
+  	</tbody>
       </table>
     </div>
-
-	
+    
   </div>
-
   <div class="" id="hidden_container" >
     {{>confirmation}}
   </div>
-
-</body>
-
-<template name="dates_selector" >
-  <select class="form-control">
-    {{#each dates}}
-    <option value="{{ this.[0] }}">{{this.[1]}}</option>
-    {{/each}}
-  </select>
 </template>
 
 <template name="confirmation">
@@ -143,10 +196,10 @@
           </div>
 	</div>
       </div>
-          <center>
+      <center>
       <button class="btn cancel">Cancel</button>
       <button class="btn confirm">Confirm</button>
-	  </center>
+      </center>
     </div>
 
 </template>
