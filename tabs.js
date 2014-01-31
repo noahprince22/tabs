@@ -29,8 +29,18 @@ if (Meteor.isClient) {
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
   function isMobile(){
-    return $(window).width() < 650;
+    return $(window).width() > 650;
   }
+
+	if(isMobile()){
+	    hash = Session.get("activeClients");
+	    client = Clients.find({user_id: user._id}).fetch()[0];
+		if( client ){
+			hash[client._id] = true;
+	    Session.set("activeClients",hash);					
+		}
+
+	}
   function getInactiveClients(){
       hash = Session.get("activeClients");
       returnClients = [];
@@ -645,7 +655,7 @@ if (Meteor.isClient) {
 	    Session.set("user",user._id);
 	    Session.set("user_name",user.profile.name);
 	    hash = Session.get("activeClients");
-	    client = Clients.find({user_id: user._id}).fetch()[0]
+	    client = Clients.find({user_id: user._id}).fetch()[0];
 	    hash[client._id] = true;
 	    Session.set("activeClients",hash);
 	});      
