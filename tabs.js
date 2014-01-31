@@ -644,6 +644,10 @@ if (Meteor.isClient) {
 
 	    Session.set("user",user._id);
 	    Session.set("user_name",user.profile.name);
+	    hash = Session.get("activeClients");
+	    client = Clients.find({user_id: user._id}).fetch()[0]
+	    hash[client._id] = true;
+	    Session.set("activeClients",hash);
 	});      
     });
       
