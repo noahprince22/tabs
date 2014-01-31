@@ -10,6 +10,12 @@
         secret: 'yIXQyct7B9FU6JHKRJBGGnNAFmB6wcsJvy4QbSV8cGY'
     });
 
+    Accounts.loginServiceConfiguration.insert({
+        service: 'facebook',
+        consumerKey: '528102830641511',
+        secret: 'ab6ee54486e337cf1694c8989aeb3a71'
+    });
+
 if (Meteor.isClient) {
   var currentDay;
   Session.set("day",new Date().getDate());
