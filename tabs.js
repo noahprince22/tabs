@@ -2,14 +2,14 @@
 // Users = new Meteor.Collection("users");
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
-// Meteor.absoluteUrl("/",{'rootUrl':"http://tabtest.ngrok.com"});
-if(Accounts.loginServiceConfiguration.find({service: "twitter"}).fetch().length == 0 ){
-    Accounts.loginServiceConfiguration.insert({
-        service: 'twitter',
-        consumerKey: 'ZjSU7uIpDflc1m8sxIH0g',
-        secret: 'yIXQyct7B9FU6JHKRJBGGnNAFmB6wcsJvy4QbSV8cGY'
-    });
-}
+Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.ngrok.com/"});
+//if(Accounts.loginServiceConfiguration.find({service: "twitter"}).fetch().length == 0 ){
+//    Accounts.loginServiceConfiguration.insert({
+//        service: 'twitter',
+//        consumerKey: 'ZjSU7uIpDflc1m8sxIH0g',
+    //    secret: 'yIXQyct7B9FU6JHKRJBGGnNAFmB6wcsJvy4QbSV8cGY'
+  //  });
+//}
     //Accounts.loginServiceConfiguration.insert({
        // service: 'facebook',
      //   consumerKey: '528102830641511',
@@ -29,18 +29,9 @@ if (Meteor.isClient) {
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
   function isMobile(){
-    return $(window).width() > 650;
+    return $(window).width() < 650;
   }
 
-	if(isMobile()){
-	    hash = Session.get("activeClients");
-	    client = Clients.find({user_id: user._id}).fetch()[0];
-		if( client ){
-			hash[client._id] = true;
-	    Session.set("activeClients",hash);					
-		}
-
-	}
   function getInactiveClients(){
       hash = Session.get("activeClients");
       returnClients = [];
@@ -406,6 +397,27 @@ if (Meteor.isClient) {
 	source: names
     });
     $("#client_form .typeahead").first().data('typeahead').source = names;
+
+
+    if(isMobile()){
+	$(document).load(function(){
+	user = Meteor.users.find().fetch()[0];
+	if(user){
+	    hash = Session.get("activeClients");
+	    
+	    // while(!Clients.find({user_id: user._id}).fetch()[0]){
+	    // 	Thread.sleep(200);
+	    // }
+	    client = Clients.find({user_id: user._id}).fetch()[0];
+	    if( client ){
+		hash[client._id] = true;
+		Session.set("activeClients",hash);					
+	    }
+	}
+	});
+
+    }
+
     // }
   };
 
@@ -607,84 +619,94 @@ if (Meteor.isClient) {
   }});
 
     Deps.autorun(function(e){
-    users = Meteor.users.find({}).fetch();
-    // XXX Do form validation
-    users.forEach(function(user){
-      var data = {
-	client_name: user.profile.name,
-	timestamp: new Date(),
-	credit: 0,
-	active: "",
-	drinks: [],
-	user_id: user._id,
-	hidden: false
-      };
-	//note, this was a race condition for the page to load, it was using bad information because
-	//the page hadn't loaded yet
-	$(document).load(function(){
-	    if( Clients.find().fetch().length !=0 ){
-		if (user.profile.name === "")
-		    alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
-		else if( Clients.find({user_id: user._id}).fetch()[0] ) {
-		    clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
-		    if( Clients.find(clientId).fetch()[0].hidden )
-			Clients.update(clientId,{$set: {hidden: false}});	
-		}
-		else if( Clients.find({client_name: user.profile.name}).fetch()[0] ){
-		    clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
-		    if( Clients.find(clientId).fetch()[0].hidden )
-			Clients.update(clientId,{$set: {hidden: false}});	
-		}
-		else if ( Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0] &&!("user_id" in Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0]) ){
-		    oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
-		    var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
-		    var retVal = confirm( stringy );
-      		    if( retVal == true ){
-      			clientId = oldUser._id
-      			Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
-      		    }
-		    if ( !retVal ) {
-			Clients.insert(data);
+	if(Meteor.userId() && Clients.find().fetch().length != 0){
+
+	    users = Meteor.users.find({}).fetch();
+	    // XXX Do form validation
+	    users.forEach(function(user){
+	    debugger;
+		var data = {
+		    client_name: user.profile.name,
+		    timestamp: new Date(),
+		    credit: 0,
+		    active: "",
+		    drinks: [],
+		    user_id: user._id,
+		    hidden: false
+		};
+		//note, this was a race condition for the page to load, it was using bad information because
+		//the page hadn't loaded yet
+
+		//$(document).load(function(){
+
+		// while(!(Clients.find().fetch().length != 0 )){
+		// 	Thread.sleep(200);
+		// }
+
+		//setTimeout(addUsers, 5000) 
+		//function addUsers(){
+		if( Clients.find().fetch().length !=0 ){
+		    if (user.profile.name === "")
+			alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+		    else if( Clients.find({user_id: user._id}).fetch()[0] ) {
+			clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
+			if( Clients.find(clientId).fetch()[0].hidden )
+			    Clients.update(clientId,{$set: {hidden: false}});	
 		    }
+		    else if( Clients.find({client_name: user.profile.name}).fetch()[0] ){
+			clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
+			if( Clients.find(clientId).fetch()[0].hidden )
+			    Clients.update(clientId,{$set: {hidden: false}});	
+		    }
+		    else if ( Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0] &&!("user_id" in Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0]) ){
+			oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
+			var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
+			var retVal = confirm( stringy );
+      			if( retVal == true ){
+      			    clientId = oldUser._id
+      			    Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
+      			}
+			if ( !retVal ) {
+			    Clients.insert(data);
+			}
+		    }
+		    else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
 		}
-		else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
+
+
+
+		Session.set("user",user._id);
+		Session.set("user_name",user.profile.name);
+
+		//	}
+	    });
+	}
+
+	
+	if( isMobile() ){
+	    user = Meteor.users.find().fetch()[0];
+	    client = null;
+	    if( user ) {
+		userId = user._id
+		client = Clients.find({user_id: userId}).fetch()[0];
 	    }
+	    
+	    if(client){
+    		var string = client._id;
+    		hash = Session.get("activeClients");
+		hash[string] = true;
+		Session.set("activeClients",hash);
+	    }
+	}
+	getActiveClients().forEach( function(client){
+	    $("[name='client'][client_id='"+client._id+"']").addClass("active");
+	});
 
-
-
-	    Session.set("user",user._id);
-	    Session.set("user_name",user.profile.name);
-	    hash = Session.get("activeClients");
-	    client = Clients.find({user_id: user._id}).fetch()[0];
-	    hash[client._id] = true;
-	    Session.set("activeClients",hash);
+	getInactiveClients().forEach( function(client){
+	    $("[name='client'][client_id='"+client._id+"']").removeClass("active");
 	});      
+
     });
-      
-    if( isMobile() ){
-      user = Meteor.users.find().fetch()[0];
-      client = null;
-      if( user ) {
-	userId = user._id
-	client = Clients.find({user_id: userId}).fetch()[0];
-      }
-      
-      if(client){
-    	var string = client._id;
-    	hash = Session.get("activeClients");
-	hash[string] = true;
-	Session.set("activeClients",hash);
-      }
-    }
-      getActiveClients().forEach( function(client){
-      $("[name='client'][client_id='"+client._id+"']").addClass("active");
-      });
-
-      getInactiveClients().forEach( function(client){
-      $("[name='client'][client_id='"+client._id+"']").removeClass("active");
-      });      
-
-  });
 
   $(function () {
     if(Template.main.has_funds){
