@@ -25,7 +25,9 @@ if (Meteor.isClient) {
   Session.set("confirmPrice",0);
   Session.set("confirmed",false);
 
-  Meteor.subscribe( 'clients' );
+    Meteor.subscribe( 'clients' ,function(){
+	Session.set('data-loaded',true);
+    });
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
   function isMobile(){
@@ -619,12 +621,12 @@ if (Meteor.isClient) {
   }});
 
     Deps.autorun(function(e){
-	if(Meteor.userId() && Clients.find().fetch().length != 0){
-
+	if(Meteor.userId() && Clients.find().fetch().length > 1 && Session.get("data-loaded")){
+	    console.log(Clients.find().fetch().length);
 	    users = Meteor.users.find({}).fetch();
 	    // XXX Do form validation
 	    users.forEach(function(user){
-	    debugger;
+
 		var data = {
 		    client_name: user.profile.name,
 		    timestamp: new Date(),
@@ -649,6 +651,7 @@ if (Meteor.isClient) {
 		    if (user.profile.name === "")
 			alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
 		    else if( Clients.find({user_id: user._id}).fetch()[0] ) {
+			console.log("found me" );
 			clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
 			if( Clients.find(clientId).fetch()[0].hidden )
 			    Clients.update(clientId,{$set: {hidden: false}});	
@@ -670,7 +673,10 @@ if (Meteor.isClient) {
 			    Clients.insert(data);
 			}
 		    }
-		    else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
+		    else if ( Clients.find({}).fetch()[0] ) {
+			Clients.insert(data);
+			Console.log("Made a new one for no goddamn reason");
+		    }
 		}
 
 
