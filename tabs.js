@@ -18,6 +18,7 @@ Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.ngrok.com/"});
 
 if (Meteor.isClient) {
   var currentDay;
+    Session.set('data-loaded',false);
   Session.set("day",new Date().getDate());
   Session.set("activeClients",{});
   Session.set("confirmActives",[]);
@@ -431,7 +432,7 @@ if (Meteor.isClient) {
       drink_name = template.find("input[name='drink_name']");
 
       // XXX Do form validation
-      priceFloat = parseFloat(price.value).toFixed(2);
+	priceFloat = parseFloat(price.value).toFixed(2);
       var data = {
 	drink_name: drink_name.value,
 	price: priceFloat,
@@ -449,6 +450,9 @@ if (Meteor.isClient) {
       }
       else if (drinksWithName.length > 0){
 	Drinks.update(drinksWithName[0]._id,{$set: {hidden:false,price:priceFloat}});
+
+	available = Drinks.find(drinksWithName[0]._id).fetch()[0].available;
+	if( available <= 0 ) Drinks.update( drinksWithName[0]._id, {$set: {available: 1}} );
       }
       else if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100)
 	alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
@@ -555,12 +559,42 @@ if (Meteor.isClient) {
     
   }});
 
+  Template.inc_price.events({'keypress #inc_price' : function(event, template) {
+    if(event.which === 13){
+      event.preventDefault();
+      credit = template.find("#inc_price");
+      var value = parseFloat(parseFloat(credit.value).toFixed(2));
+      if( isNaN(value) ) {
+	alert("You're a cocksucker, put a number in");
+      }else{
+	$.each($("[name='drink'][class='active']"),function(index,drink){
+	  drinkId = $(drink).attr("drink_id");
+	    debugger;
+	    price = Drinks.find(drinkId).fetch()[0].price;
+	    priceNew = parseFloat(price) + parseFloat(value);
+	    Drinks.update(drinkId,{$set: {price: priceNew.toFixed(2)}});
+	});
+	
+      }
+      credit.value = "";
+      
+    }
+    
+  }});
+
   function isAdminMode(){
     user = Meteor.users.find({}).fetch()[0];
-    if( user && user.profile && user.profile.name === "Noah Prince" ) return true;
+      if( user && user.profile && (user.profile.name === "Noah Prince" || user.profile.name === "Robert D Hartmann" )) return true;
     return false;     
   }
   Template.add_cash.hidden = function(e){
+    if ( isAdminMode() ){
+      return "";
+    }
+    return "hidden";
+  }
+
+  Template.inc_price.hidden = function(e){
     if ( isAdminMode() ){
       return "";
     }
@@ -592,7 +626,7 @@ if (Meteor.isClient) {
       }
     });
 
-    if( datesHasDate(dates,new Date()) ){
+    if( !datesHasDate(dates,new Date()) ){
       dates.push([new Date(),(new Date()).toLocaleDateString()]);
     }
     
@@ -603,7 +637,7 @@ if (Meteor.isClient) {
   function datesHasDate(dates, day){
     bool = false;
     dates.forEach(function(arr){
-	if( arr[0].getDate() === day.getDate() ) bool =  true;
+	if( arr[0].getDate() == day.getDate() ) bool =  true;
     });
     return bool;
   }
@@ -621,7 +655,7 @@ if (Meteor.isClient) {
   }});
 
     Deps.autorun(function(e){
-	if(Meteor.userId() && Clients.find().fetch().length > 1 && Session.get("data-loaded")){
+	if(Meteor.userId() && (Clients.find().fetch().length > 1) && Session.get("data-loaded")){
 	    console.log(Clients.find().fetch().length);
 	    users = Meteor.users.find({}).fetch();
 	    // XXX Do form validation
