@@ -65,12 +65,23 @@ body *:not(button){
     #add_cash{
 	display:none;
     }
+
+    #inc_price{
+	display:none;
+    }
+
     #delete_button {
 	display:none;
     }
     #hide_button {
 	display:none;
     }
+    button div{
+	pointer-events:none;
+	background-color:transparent;
+	font-size:100%;
+    }
+
     
 }
 				    
@@ -201,6 +212,11 @@ table label{
 /* } */
 
 #add_cash{
+    opacity:1;
+    color:red;
+}
+
+#inc_price{
     opacity:1;
     color:red;
 }

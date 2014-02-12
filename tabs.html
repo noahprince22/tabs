@@ -35,15 +35,17 @@
 
 
 <body>
+  <button class="pull-right" id="hide_button"> Hide </button>
   {{>delete_stuff}}
   {{>main}}
-  <button class="pull-right" id="hide_button"> Hide </button>
+
   <img src="http://ws.engr.illinois.edu/directory/viewphoto/4969/240" class="madhu"/>
 </body>
 
 <template name="main" >
 
   {{>add_cash}}
+  {{>inc_price}}
 
   {{#if is_mobile}}
 
@@ -173,7 +175,7 @@
 	</div>
 	<div class="col-md-4">
 	  <center> 
-	    <label class="control-label">New Credit</label>
+	    <label class="control-label">Remaining Balance</label>
 	  </center>
 	  {{#each clients}}
 	  <center>
@@ -303,6 +305,10 @@
 
 	  <template name="add_cash">
 	    <input type="text" class="{{hidden}}" placeholder="Number to add" id="add_cash"> </input>
+	  </template>
+
+	  <template name="inc_price">
+	    <input type="text" class="{{hidden}}" placeholder="Increment Price By" id="inc_price"> </input>
 	  </template>
 
 	  <template name="delete_stuff">

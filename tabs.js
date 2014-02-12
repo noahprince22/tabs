@@ -2,22 +2,10 @@
 // Users = new Meteor.Collection("users");
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
-// Meteor.absoluteUrl("/",{'rootUrl':"http://tabtest.ngrok.com"});
-if(Accounts.loginServiceConfiguration.find({service: "twitter"}).fetch().length == 0 ){
-    Accounts.loginServiceConfiguration.insert({
-        service: 'twitter',
-        consumerKey: 'ZjSU7uIpDflc1m8sxIH0g',
-        secret: 'yIXQyct7B9FU6JHKRJBGGnNAFmB6wcsJvy4QbSV8cGY'
-    });
-}
-    //Accounts.loginServiceConfiguration.insert({
-       // service: 'facebook',
-     //   consumerKey: '528102830641511',
-      //  secret: 'ab6ee54486e337cf1694c8989aeb3a71'
-   // });
-
+Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.ngrok.com/"});
 if (Meteor.isClient) {
   var currentDay;
+    Session.set('data-loaded',false);
   Session.set("day",new Date().getDate());
   Session.set("activeClients",{});
   Session.set("confirmActives",[]);
@@ -25,10 +13,20 @@ if (Meteor.isClient) {
   Session.set("confirmPrice",0);
   Session.set("confirmed",false);
 
-  Meteor.subscribe( 'clients' );
+    Meteor.subscribe( 'clients' ,function(){
+	Session.set('data-loaded',true);
+    });
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
+  function isMobile(){
+	debugger;
+    return $(window).width() < 650;
+  }
 
+  function getInactiveClients(){
+      hash = Session.get("activeClients");
+      returnClients = [];
+  }
   /*************************
    * General Use Functions!*
    ************************/
@@ -106,7 +104,7 @@ if (Meteor.isClient) {
   function hideMain(f){
     $("#slide_div").promise().done(function(){
       $("#slide_div").toggle("slide",{"direction": "left"});
-      $("#hidden_container").toggle("slide",{"direction":"right"})
+      $("#hidden_container").toggle("slide",{"direction":"right"});
       // $("#slide_div").animate({"margin-left": '-=2000'});
     });
     $("#slide_div").promise().done(function(){
@@ -146,59 +144,60 @@ if (Meteor.isClient) {
    *
    * @param drinkId [String] the Mongo ID of the drink to add 
    */
-  function addDrinks(drinkId){
-    var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
-    var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
-    var numClientsSelected = Object.keys(Session.get("activeClients")).length;
-    
-    splitTabMode = $("#split_tab").hasClass("active");
-    
-    if( splitTabMode ){
-      drinkPrice = (parseFloat(drinkPrice)/numClientsSelected).toFixed(2);
-      drinkName = drinkName+" (splitTab)";
-      Drinks.update(drinkId,{$inc: {available: -1}});
-    }
-	
-    fundsFound = verifyFunds(getActiveClients(),drinkPrice);
-    if(fundsFound){
-      Session.set("confirmActives",getActiveClients());
-      Session.set("confirmDrink",drinkName);
-      Session.set("confirmPrice",drinkPrice);
-      hideMain(function(){
+  function addDrinks(activeElements,drinkId){
+	var drinkName = Drinks.find(drinkId).fetch()[0]["drink_name"];
+	var drinkPrice = Drinks.find(drinkId).fetch()[0]["price"];
+	var numClientsSelected = Object.keys(Session.get("activeClients")).length;
+
+	splitTabMode = $("#split_tab").hasClass("active");
+
+	if( splitTabMode ){
+	  drinkPrice = (parseFloat(drinkPrice)/numClientsSelected).toFixed(2);
+	  drinkName = drinkName+" (splitTab)";
+	  Drinks.update(drinkId,{$inc: {available: -1}});
+	}
+	fundsFound = verifyFunds(getActiveClients(),drinkPrice);
+	// $("[name='client']").removeClass("active");
+	if(fundsFound){
+	  Session.set("confirmActives",getActiveClients());
+	  Session.set("confirmDrink",drinkName);
+	  Session.set("confirmPrice",drinkPrice);
+	  hideMain(function(){
 		$.each(getActiveClients(),function(index,client){
 		  var clientId = client._id
 
+		  // var client = Clients.find(client_id).fetch("client_name")[0]["something"] = "assfuck";
 		  // Go through an array of drinks, each drink is a hash. Each drink hash
 		  // has a number of drinks purchases, a day that they were purchased,
 		  // the drink name, the drink id, and the drink price.
-		  var drink_found = false; 
+		  var drink_found = false;
 
 		  var client = client
 		  var drinks = client.drinks
 
 		  var clientName = client["client_name"];
-		  
+
 		  //set drinks if it's not there (defensive programming)
 		  if(!drinks) drinks = [];
-		  
+
 		  $.each(drinks,function(index,drink){
 			if( drink ) {
 			  //defensive programming stuff. make sure drink.day and currentDay have something
 			  if( !drink["day"] ) drink.day = new Date();
 			  if( !currentDay ) currentDay = new Date();
-			  
-			  var sameDay = drink["day"].getDate() === currentDay.getDate(); 
+
+			  var sameDay = drink["day"].getDate() === currentDay.getDate();
 			  var sameName = drink["name"] === drinkName;
 			  var sameId = drink["drink_id"] === drinkId;
 			  var samePrice = drink.price === drinkPrice;
-			  
+
 			  if( sameDay && sameName && sameId && samePrice) {
 				drink["number"] = parseFloat(drink["number"])+1;
 				drink_found = true;
 			  }
 			}
 		  });
-		  
+
 		  //if the drink didn't already exist make a blank one
 		  if(!drink_found){
 			var data = {
@@ -215,20 +214,37 @@ if (Meteor.isClient) {
 		  Clients.update(clientId,{$inc: {credit: -drinkPrice}});
 		  Drinks.update(drinkId,{$set: {timestamp: new Date().getTime()}});
 		  if( !splitTabMode ){
-            Drinks.update(drinkId,{$inc: {available: -1}});
+			Drinks.update(drinkId,{$inc: {available: -1}});
 		  }
-
+		  // Clients.update(clientId,{$set: {active: ""}});
 		  if( !isMobile() ){
 			hash = Session.get("activeClients");
 			hash[clientId] = false;
 			Session.set("activeClients",hash);
 		  }
+		  // Clients.update(client);p
+		  // console.log(client);
 		});
-		
 		$("#split_tab").removeClass("active");
 		$(".select-all").removeClass("active");
-      });
-    }
+
+		// $("#main_container").animate({width: 'toggle'})
+		//set
+		// $("#slide_div").animate({"margin-left": '+=2000'});
+		// $("#hidden_container").toggleClass("hidden");
+		// // $lefty.animate({
+		// left: parseInt($lefty.css('left'),10) == 0 ?
+		//   -$lefty.outerWidth() :
+		//   0
+		// });
+		// $lefty.animate({
+		// left: parseInt($lefty.css('left'),10) == 0 ?
+		//   -$lefty.outerWidth() :
+		//   0
+		// });
+
+	  });
+	}
   }
   /** Parses a dates array for a given day
   *
@@ -390,41 +406,46 @@ if (Meteor.isClient) {
     }
   };
 
+
   Template.drink.drinks = function() {
-    return Drinks.find({hidden: false,available: {$gt: 0}}, {sort: {timestamp: -1, drink_name: 1}});
-  };
+	return Drinks.find({hidden: false,available: {$gt: 0}}, {sort: {timestamp: -1, drink_name: 1}});
+  }
+
 
   /****************************
    * drink_form Template stuff *
    ***************************/
-    Template.drink_form.events({'keypress #drink_form' : function(event, template) {
+  Template.drink_form.events({'keypress #drink_form' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
       price = template.find("input[name='price']");
       drink_name = template.find("input[name='drink_name']");
 
       // XXX Do form validation
-      priceFloat = parseFloat(price.value).toFixed(2);
+	  priceFloat = parseFloat(price.value).toFixed(2);
       var data = {
-	drink_name: drink_name.value,
-	price: priceFloat,
-	timestamp: new Date().getTime(),
-	hidden: false,
-	      available: 1
+		drink_name: drink_name.value,
+		price: priceFloat,
+		timestamp: new Date().getTime(),
+		hidden: false,
+	    available: 1
       };
 
       drinksWithName = Drinks.find({drink_name: drink_name.value}).fetch();
       if ( drinksWithName.length > 0 && isNaN(priceFloat)){
-	Drinks.update(drinksWithName[0]._id,{$set:{hidden: false}});
+		Drinks.update(drinksWithName[0]._id,{$set:{hidden: false}});
 
-	available = Drinks.find(drinksWithName[0]._id).fetch()[0].available;
-	if( available <= 0 ) Drinks.update( drinksWithName[0]._id, {$set: {available: 1}} );
+		available = Drinks.find(drinksWithName[0]._id).fetch()[0].available;
+		if( available <= 0 ) Drinks.update( drinksWithName[0]._id, {$set: {available: 1}} );
       }
       else if (drinksWithName.length > 0){
-	Drinks.update(drinksWithName[0]._id,{$set: {hidden:false,price:priceFloat}});
+		Drinks.update(drinksWithName[0]._id,{$set: {hidden:false,price:priceFloat}});
+
+		available = Drinks.find(drinksWithName[0]._id).fetch()[0].available;
+		if( available <= 0 ) Drinks.update( drinksWithName[0]._id, {$set: {available: 1}} );
       }
       else if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100)
-	alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
+		alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
       else Drinks.insert(data);
 
       drink_name.value="";
@@ -437,36 +458,58 @@ if (Meteor.isClient) {
   // TYPEAHEAD STUFF        //
   //***********************//
 
-  Template.drink.rendered = function(){
-    var hiddenDrinks = Drinks.find({$or: [{hidden: true},{available: {$lte: 0}}] }).fetch();
-    var names = [];
-
-    hiddenDrinks.forEach( function(drink){
-      names.push(drink.drink_name);
-    });
-	
-    $("#drink_form .typeahead").first().typeahead({
-	  source: names
-    });
-	
-    $("#drink_form .typeahead").first().data('typeahead').source = names;
-  };
-  
-
   Template.client.rendered = function(){
-    var hiddenclients = Clients.find( {hidden: true} ).fetch();
-    var names = [];
+    // if(this.rendered){
+      var hiddenclients = Clients.find( {hidden: true} ).fetch();
+      var names = [];
       
-    hiddenclients.forEach( function(client){
-      names.push(client.client_name);
-    });
+      hiddenclients.forEach( function(client){
+    	names.push(client.client_name);
+      });
 
     $("#client_form .typeahead").first().typeahead({
-	  source: names
+	source: names
     });
-	
     $("#client_form .typeahead").first().data('typeahead').source = names;
+
+
+    if(isMobile()){
+	$(document).load(function(){
+	user = Meteor.users.find().fetch()[0];
+	if(user){
+	    hash = Session.get("activeClients");
+	    
+	    // while(!Clients.find({user_id: user._id}).fetch()[0]){
+	    // 	Thread.sleep(200);
+	    // }
+	    client = Clients.find({user_id: user._id}).fetch()[0];
+	    if( client ){
+		hash[client._id] = true;
+		Session.set("activeClients",hash);					
+	    }
+	}
+	});
+
+    }
+
+    // }
   };
+
+
+  Template.drink.rendered = function(){
+	// if(this.rendered){
+	var hiddenDrinks = Drinks.find({$or: [{hidden: true},{available: {$lte: 0}}] }).fetch();
+	var names = [];
+	hiddenDrinks.forEach( function(drink){
+	  names.push(drink.drink_name);
+	});
+	$("#drink_form .typeahead").first().typeahead({
+	  source: names
+	});
+	$("#drink_form .typeahead").first().data('typeahead').source = names;
+	// }
+  };
+
 
   /************************
    * client Template stuff*
@@ -475,6 +518,30 @@ if (Meteor.isClient) {
     return Clients.find({hidden: false}, {sort: {client_name: 1}});
   };
 
+  Template.client.events = {
+	'touchstart' : function(e){ e.stopImmediatePropagation(); },
+	'click': function(e){
+	  element = $(e.target).closest("[name='client']");
+	  hash = Session.get("activeClients");
+
+	  var clientId = $(e.target).closest("[name='client']").attr("client_id");
+	  var active = hash[clientId];
+	  //toggling the active on the client
+	  if(active){
+		hash[clientId] = false;
+		// var thing = Clients.update(clientId,{$set: {active: ""}});
+	  }
+	  else{
+		hash[clientId] = true;
+	  }
+
+	  Session.set("activeClients",hash);
+	  $("[name='drink']").removeClass("active");
+
+	}
+
+  };
+  
   /*****************************
    * client_form Template stuff*
    ****************************/
@@ -590,23 +657,47 @@ if (Meteor.isClient) {
     
   }});
 
-  Template.add_cash.hidden = function(e){
+  Template.inc_price.events({'keypress #inc_price' : function(event, template) {
+    if(event.which === 13){
+      event.preventDefault();
+      credit = template.find("#inc_price");
+      var value = parseFloat(parseFloat(credit.value).toFixed(2));
+      if( isNaN(value) ) {
+	alert("You're a cocksucker, put a number in");
+      }else{
+	$.each($("[name='drink'][class='active']"),function(index,drink){
+	  drinkId = $(drink).attr("drink_id");
+	    debugger;
+	    price = Drinks.find(drinkId).fetch()[0].price;
+	    priceNew = parseFloat(price) + parseFloat(value);
+	    Drinks.update(drinkId,{$set: {price: priceNew.toFixed(2)}});
+	});
+	
+      }
+      credit.value = "";
+      
+    }
+    
+  }});
+
+  Template.inc_price.hidden = function(e){
     if ( isAdminMode() ){
       return "";
     }
     return "hidden";
-  }
+  };
 
   Template.delete_stuff.hidden = function(e){
     if ( isAdminMode() ){
       return "";
     }
     return "hidden";
-  }
+  };
 
   /********************************
    * dates_selector template stuff*
    *******************************/
+
   Template.dates_selector.dates = function(){
     return getDates();
   };
@@ -624,90 +715,109 @@ if (Meteor.isClient) {
    * Be careful with this stuff, can create laggy loops!    *
    *********************************************************/
   Deps.autorun(function(e){
-    users = Meteor.users.find({}).fetch();
-    // XXX Do form validation
-    users.forEach(function(user){
-      var data = {
-		client_name: user.profile.name,
-		timestamp: new Date(),
-		credit: 0,
-		active: "",
-		drinks: [],
-		user_id: user._id,
-		hidden: false
-      };
-	  //note, this was a race condition for the page to load, it was using bad information because
-	  //the page hadn't loaded yet
-	  $(document).load(function(){
-	    if( Clients.find().fetch().length !=0 ){
+
+	function isMobile(){
+      return $(window).width() < 650;
+	}
+	
+	if(Meteor.userId() && (Clients.find().fetch().length > 1) && Session.get("data-loaded")){
+	  console.log(Clients.find().fetch().length);
+	  users = Meteor.users.find({}).fetch();
+	  // XXX Do form validation
+	  users.forEach(function(user){
+
+		var data = {
+		  client_name: user.profile.name,
+		  timestamp: new Date(),
+		  credit: 0,
+		  active: "",
+		  drinks: [],
+		  user_id: user._id,
+		  hidden: false
+		};
+		//note, this was a race condition for the page to load, it was using bad information because
+		//the page hadn't loaded yet
+
+		//$(document).load(function(){
+
+		// while(!(Clients.find().fetch().length != 0 )){
+		// Thread.sleep(200);
+		// }
+
+		//setTimeout(addUsers, 5000)
+		//function addUsers(){
+		if( Clients.find().fetch().length !=0 ){
 		  if (user.profile.name === "")
-		    alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+			alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
 		  else if( Clients.find({user_id: user._id}).fetch()[0] ) {
-		    clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
-		    if( Clients.find(clientId).fetch()[0].hidden )
-			  Clients.update(clientId,{$set: {hidden: false}});	
+			console.log("found me" );
+			clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
+			if( Clients.find(clientId).fetch()[0].hidden )
+			  Clients.update(clientId,{$set: {hidden: false}});
 		  }
 		  else if( Clients.find({client_name: user.profile.name}).fetch()[0] ){
-		    clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
-		    if( Clients.find(clientId).fetch()[0].hidden )
-			  Clients.update(clientId,{$set: {hidden: false}});	
+			clientId = Clients.find({client_name: user.profile.name}).fetch()[0]._id;
+			if( Clients.find(clientId).fetch()[0].hidden )
+			  Clients.update(clientId,{$set: {hidden: false}});
 		  }
 		  else if ( Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0] &&!("user_id" in Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0]) ){
-		    oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
-		    var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
-		    var retVal = confirm( stringy );
-      		if( retVal == true ){
-      		  clientId = oldUser._id
-      		  Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
-      		}
-		    if ( !retVal ) {
+			oldUser = Clients.find({client_name: user.profile.name.split(" ")[0]}).fetch()[0];
+			var stringy = "Are you the user named " + oldUser.client_name + " that is already in the system?"
+			var retVal = confirm( stringy );
+			if( retVal == true ){
+			  clientId = oldUser._id
+			  Clients.update(clientId,{$set: {hidden: false,client_name: user.profile.name,user_id: user._id}});
+			}
+			if ( !retVal ) {
 			  Clients.insert(data);
-		    }
+			}
 		  }
-		  else if ( Clients.find({}).fetch()[0] ) Clients.insert(data);
-	    }
-
-
-
-	    Session.set("user",user._id);
-	    Session.set("user_name",user.profile.name);
-	    hash = Session.get("activeClients");
-	    client = Clients.find({user_id: user._id}).fetch()[0];
-	    hash[client._id] = true;
-	    Session.set("activeClients",hash);
-	  });      
-    });
-      
-      if( isMobile() ){
-		user = Meteor.users.find().fetch()[0];
-		client = null;
-		if( user ) {
-		  userId = user._id
-		  client = Clients.find({user_id: userId}).fetch()[0];
+		  else if ( Clients.find({}).fetch()[0] ) {
+			Clients.insert(data);
+			Console.log("Made a new one for no goddamn reason");
+		  }
 		}
-		
-		if(client){
-    	  var string = client._id;
-    	  hash = Session.get("activeClients");
-		  hash[string] = true;
-		  Session.set("activeClients",hash);
-		}
-      }
-      getActiveClients().forEach( function(client){
-		$("[name='client'][client_id='"+client._id+"']").addClass("active");
-      });
 
-      getInactiveClients().forEach( function(client){
-		$("[name='client'][client_id='"+client._id+"']").removeClass("active");
-      });      
 
+
+		Session.set("user",user._id);
+		Session.set("user_name",user.profile.name);
+
+		//}
+	  });
+	}
+
+
+	if( isMobile() ){
+	  user = Meteor.users.find().fetch()[0];
+	  client = null;
+	  if( user ) {
+		userId = user._id
+		client = Clients.find({user_id: userId}).fetch()[0];
+	  }
+
+	  if(client){
+		var string = client._id;
+		hash = Session.get("activeClients");
+		hash[string] = true;
+		Session.set("activeClients",hash);
+	  }
+	}
+	getActiveClients().forEach( function(client){
+	  $("[name='client'][client_id='"+client._id+"']").addClass("active");
 	});
 
+	getInactiveClients().forEach( function(client){
+	  $("[name='client'][client_id='"+client._id+"']").removeClass("active");
+	});
+  });
 
-/************************************************************************************
+
+  
+
+	/************************************************************************************
 * jquery stuff which attaches all of the main (non changing) buttons click events   *
 ************************************************************************************/
-
   $(function () {
     if(Template.main.has_funds){
     //lets get fucked up song
@@ -793,31 +903,31 @@ if (Meteor.isClient) {
       hash = Session.get("activeClients");
       
       if( $(this).hasClass("active") ){
-	clients.forEach(function(client){
-	  hash[client._id] = true;
-	  $("[client_id='"+client._id+"']").addClass("active");
-	});
+		clients.forEach(function(client){
+		  hash[client._id] = true;
+		  $("[client_id='"+client._id+"']").addClass("active");
+		});
 
-	Session.set("activeClients",hash);
-	// setAllClients(Clients,{active:"active"});
+		Session.set("activeClients",hash);
       }else{
-	clients.forEach(function(client){
-	  hash[client._id] = false;
-	  $("[client_id='"+client._id+"']").removeClass("active");
-	});
-
-	Session.set("activeClients",hash);
+		clients.forEach(function(client){
+		  hash[client._id] = false;
+		  $("[client_id='"+client._id+"']").removeClass("active");
+		});
+		
+		Session.set("activeClients",hash);
       }
-
+	  
     });
     }
   });
-
 }
+  
+
 
 // code to run on server at startup
-if (Meteor.isServer) {
-  Meteor.startup(function () {
+  if (Meteor.isServer) {
+	Meteor.startup(function () {
     Meteor.publish('clients',function(){
       return Clients.find();
     });
