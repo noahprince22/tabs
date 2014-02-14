@@ -112,9 +112,9 @@ if (Meteor.isClient) {
       $(".confirm").bind("click.confClick", function(){
 		
 		f();
-		showMain();
 		$(".confirm").unbind("click.confClick");
 		$(".cancel").unbind("click.confClick");
+							 showMain();
       });
 
       $(".cancel").bind("click.confClick", function(){
