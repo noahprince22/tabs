@@ -18,8 +18,8 @@ if (Meteor.isClient) {
     });
   Meteor.subscribe( 'drinks' );
   Meteor.subscribe( 'users' );
+
   function isMobile(){
-	debugger;
     return $(window).width() < 650;
   }
 
@@ -30,12 +30,6 @@ if (Meteor.isClient) {
   /*************************
    * General Use Functions!*
    ************************/
-
-  //@return [Boolean] whether or not the client is using a mobile browser
-  function isMobile(){
-    return $(window).width() > 650;
-  }
-
   /** Sets all meteor drink objects to the given data
    *
    * @param cursors [Meteor Cursor Array] the cursors of the drinks to be altered
@@ -72,7 +66,7 @@ if (Meteor.isClient) {
       if( newCredit < 0 ) {
 
 		if( !quiet ){
-		  alert("Hey "+client.client_name+" you fucking deadbeat, you're out of credit.");
+		  alert("Hey "+client.client_name+", you deadbeat, you're out of credit.");
 		}
 		
 		falseFound=true;
@@ -166,7 +160,6 @@ if (Meteor.isClient) {
 		$.each(getActiveClients(),function(index,client){
 		  var clientId = client._id
 
-		  // var client = Clients.find(client_id).fetch("client_name")[0]["something"] = "assfuck";
 		  // Go through an array of drinks, each drink is a hash. Each drink hash
 		  // has a number of drinks purchases, a day that they were purchased,
 		  // the drink name, the drink id, and the drink price.
@@ -445,7 +438,7 @@ if (Meteor.isClient) {
 		if( available <= 0 ) Drinks.update( drinksWithName[0]._id, {$set: {available: 1}} );
       }
       else if (isNaN(priceFloat) || priceFloat <= 0 || priceFloat > 100)
-		alert("You're a cocksucker. Put an actual number in. Go home Bobby, you're drunk");
+		alert("Put an actual number in. Go home Bobby, you're drunk");
       else Drinks.insert(data);
 
       drink_name.value="";
@@ -561,7 +554,7 @@ if (Meteor.isClient) {
       };
 
       if (client_name.value === "")
-	alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+	alert("Put an actual name in. Go home Bobby, you're drunk");
       else if ( Clients.find({client_name: client_name.value}).fetch()[0] ){
 	clientId = Clients.find({client_name: client_name.value}).fetch()[0]._id;
 	Clients.update(clientId,{$set: {hidden: false}});
@@ -608,6 +601,7 @@ if (Meteor.isClient) {
   };
   
   Template.main.is_mobile = function(){
+	  debugger;
 	return isMobile();
   };
   
@@ -635,7 +629,7 @@ if (Meteor.isClient) {
       credit = template.find("#add_cash");
       var value = parseFloat(parseFloat(credit.value).toFixed(2));
       if( isNaN(value) ) {
-	alert("You're a cocksucker, put a number in");
+	alert("Put a number in!!!!");
       }else{
 	clients = getActiveClients();
 	hash = Session.get("activeClients");
@@ -657,13 +651,21 @@ if (Meteor.isClient) {
     
   }});
 
+  Template.add_cash.hidden = function(e){
+    if ( isAdminMode() ){
+      return "";
+    }
+    return "hidden";
+  };
+
+
   Template.inc_price.events({'keypress #inc_price' : function(event, template) {
     if(event.which === 13){
       event.preventDefault();
       credit = template.find("#inc_price");
       var value = parseFloat(parseFloat(credit.value).toFixed(2));
       if( isNaN(value) ) {
-	alert("You're a cocksucker, put a number in");
+	alert("Put a number in!!!!");
       }else{
 	$.each($("[name='drink'][class='active']"),function(index,drink){
 	  drinkId = $(drink).attr("drink_id");
@@ -748,7 +750,7 @@ if (Meteor.isClient) {
 		//function addUsers(){
 		if( Clients.find().fetch().length !=0 ){
 		  if (user.profile.name === "")
-			alert("You're a cocksucker. Put an actual name in. Go home Bobby, you're drunk");
+			alert("Put an actual name in. Go home Bobby, you're drunk");
 		  else if( Clients.find({user_id: user._id}).fetch()[0] ) {
 			console.log("found me" );
 			clientId = Clients.find({user_id: user._id}).fetch()[0]._id;
@@ -820,12 +822,6 @@ if (Meteor.isClient) {
 ************************************************************************************/
   $(function () {
     if(Template.main.has_funds){
-    //lets get fucked up song
-    $("#fucked_up").click(function(e){
-      var win=window.open('http://www.youtube.com/watch?v=xSAxR6BgW3I', '_blank');
-      win.focus();
-    });
-    
     $("a").click(function(e) {
       var x = e.pageX - this.offsetLeft - 20;
       var y = e.pageY - this.offsetTop + 22;
