@@ -1,3 +1,9 @@
+/* @author Noah Prince
+ * 
+ * 
+ */
+
+
 //both client and server
 // Users = new Meteor.Collection("users");
   Drinks = new Meteor.Collection("drinks");
