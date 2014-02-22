@@ -19,7 +19,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
   </head>
 
-<body>  
+<body>
+  <script type="text/javascript" src="client/FileSaver1.js"></script>
   <div class="navbar navbar-static-top navbar-inverse">
     <div class="navbar-inner">
       <div class="container">
@@ -104,7 +105,7 @@
   <div class="container" id="slide_div">
     <div class="container" id="main_container" >
 
-      <h1 ><center href="#">Tabs</center></h1>
+      <h1 ><center href="#">Tabs</center></h1>	  
       <div class="row">
   	<div id="clients" class="col-md-4">
   	  <label class="control-label">Name</label>
@@ -148,6 +149,9 @@
   	  {{>drink_table}}
   	</tbody>
       </table>
+
+	  <a href="#" id="csv_clients"> Download Client CSV</a>
+	  <a href="#" id="csv_drinks"> Download Drinks CSV</a>
     </div>
     
   </div>
