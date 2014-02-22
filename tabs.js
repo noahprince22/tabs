@@ -581,7 +581,7 @@ if (Meteor.isClient) {
     clients.forEach( function(client){
       if(client.drinks){
 		var now = new Date();
-		var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
+		var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, now.getDate()+1).getTime();
 	
 		var newDrinks = client.drinks.slice();
 		client.drinks.forEach( function(drink,index){
@@ -607,7 +607,6 @@ if (Meteor.isClient) {
   };
   
   Template.main.is_mobile = function(){
-	  debugger;
 	return isMobile();
   };
   
@@ -675,7 +674,6 @@ if (Meteor.isClient) {
       }else{
 	$.each($("[name='drink'][class='active']"),function(index,drink){
 	  drinkId = $(drink).attr("drink_id");
-	    debugger;
 	    price = Drinks.find(drinkId).fetch()[0].price;
 	    priceNew = parseFloat(price) + parseFloat(value);
 	    Drinks.update(drinkId,{$set: {price: priceNew.toFixed(2)}});
