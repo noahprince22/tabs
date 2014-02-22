@@ -1116,9 +1116,19 @@ if (Meteor.isClient) {
 
 
 	$('#csv_drinks').click(function(e){
-	  var data = Drinks.find({},{fields:{ "_id": 0,"active":0,"hidden":0,"timestamp":0 }}).fetch(); 
-	  var yourCSVData = JSON2CSV(data);
-
+	  var data = Drinks.find({},{fields:{ "_id": 0,"active":0,"hidden":0,"timestamp":0 }}).fetch();
+	  var newData = new Array(data.length);
+	  $.each(data,function(index,value){
+		var newStuff = {};
+		newStuff["drink_name"] = data[index]["drink_name"];
+		newStuff["price"] = data[index]["price"];
+		newStuff["available"] = data[index]["available"];
+		
+		newData[index] = newStuff;
+	  });
+	  
+	  var yourCSVData = JSON2CSV(newData);
+	  // data = to_json( data, { utf8 => 1, pretty => 1, convert_blessed => 1, canonical => 1 } );
 	  var blob = new Blob([yourCSVData],
 						  {type: "text/csv;charset=utf-8"});
 	  saveAs(blob, "drinks.csv");
@@ -1126,7 +1136,16 @@ if (Meteor.isClient) {
 
 	$('#csv_clients').click(function(e){
 	  var data = Clients.find({},{fields:{ "_id": 0,"active":0,"drinks":0,"hidden":0,"timestamp":0,"user_id":0 }}).fetch();
-	  var yourCSVData = JSON2CSV(data);
+	  var newData = new Array(data.length);
+	  $.each(data,function(index,value){
+		var newStuff = {};
+		newStuff["client_name"] = data[index]["client_name"];
+		newStuff["credit"] = data[index]["credit"];
+		
+		newData[index] = newStuff;
+	  });
+	  
+	  var yourCSVData = JSON2CSV(newData);
 
 	  var blob = new Blob([yourCSVData],
 						  {type: "text/csv;charset=utf-8"});
