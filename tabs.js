@@ -195,7 +195,7 @@ if (Meteor.isClient) {
   //@return [Boolean] whether the person signed in is an admin
   function isAdminMode(){
     user = Meteor.users.find({}).fetch()[0];
-    if( user && user.profile && user.profile.name === "Noah Prince" ) return true;
+    if( user && user.profile && (user.profile.name === "Noah Prince" || user.profile.name === "Robert D Hartmann") ) return true;
     return false;     
   }
   /** Adds the given drink (by drink id) to all selected clients
@@ -310,9 +310,11 @@ if (Meteor.isClient) {
   * NOTE: This function was created specifically as a helper for the getDates() function 
   */
   function datesHasDate(dates, day){
+    var now = new Date();
+    var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, now.getDate()+1).getTime();
     bool = false;
     dates.forEach(function(arr){
-	if( arr[0].getDate() === day.getDate() ) bool =  true;
+	if( arr[0].getDate() === day.getDate() && day.getTime()>aMonthBack ) bool =  true;
     });
     return bool;
   }
@@ -326,8 +328,10 @@ if (Meteor.isClient) {
       if(client.drinks){
 	client.drinks.forEach( function(drink){
 	  var now = new Date();
-	  var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, 1).getTime();
-	  if( drink.day && drink.day.getTime() > aMonthBack && !datesHasDate(dates,drink.day) ){
+	  var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, now.getDate()+1).getTime();
+// if( drink.day.getDate() == 1)
+	// debugger;
+	  if( drink.day && (drink.day.getTime() > aMonthBack) && !datesHasDate(dates,drink.day) ){
 	    dates.push( [drink.day,drink.day.toLocaleDateString()] );
 	    // displayDates.push( drink.day.getTime() );	    
 	  }
@@ -336,7 +340,7 @@ if (Meteor.isClient) {
       }
     });
 
-    if( datesHasDate(dates,new Date()) ){
+    if( !datesHasDate(dates,new Date()) ){
       dates.push([new Date(),(new Date()).toLocaleDateString()]);
     }
     
@@ -642,6 +646,7 @@ if (Meteor.isClient) {
 		var aMonthBack = new Date(now.getFullYear(), now.getMonth()-1, now.getDate()+1).getTime();
 	
 		var newDrinks = client.drinks.slice();
+
 		client.drinks.forEach( function(drink,index){
 		  if(!drink["day"]) drink["day"] = new Date();
 		  if( drink["day"].getDate() !== day || drink.day.getTime() < aMonthBack) newDrinks.splice(newDrinks.indexOf(drink),1);
@@ -769,7 +774,7 @@ if (Meteor.isClient) {
   Template.dates_selector.events({'change select, select' : function(event,template){
     index = template.find(".form-control").selectedIndex;
     date = new Date(template.find(".form-control").options[index].value).getDate();
-      					  
+    
     Session.set("day",parseFloat(date));
   }});
 
