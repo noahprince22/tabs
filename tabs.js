@@ -9,7 +9,7 @@
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
 
-Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.ngrok.com/"});
+Meteor.absoluteUrl("/",{'rootUrl':"http://nprince-tabber.openshift.com/"});
 if (Meteor.isClient) {
   var currentDay;
     Session.set('data-loaded',false);
@@ -222,15 +222,15 @@ if (Meteor.isClient) {
 	  Session.set("confirmPrice",drinkPrice);
 	  hideMain(function(){
 		$.each(getActiveClients(),function(index,client){
-		  var clientId = client._id
+		  var clientId = client._id;
 
 		  // Go through an array of drinks, each drink is a hash. Each drink hash
 		  // has a number of drinks purchases, a day that they were purchased,
 		  // the drink name, the drink id, and the drink price.
 		  var drink_found = false;
 
-		  var client = client
-		  var drinks = client.drinks
+		  var client = client;
+		  var drinks = client.drinks;
 
 		  var clientName = client["client_name"];
 

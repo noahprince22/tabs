@@ -2,8 +2,8 @@
   <head>
     <title>New Page</title>
     <meta name="viewport" content="width=device-width">
-    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
-    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <!-- <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> -->
+    <!-- <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script> -->
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <!-- <script type="text/javascript" src="http://cdn.jquerytools.org/1.2.5/full/jquery.tools.min.js"></script> -->
     <script type="text/javascript" src="http://blattchat.com/demos/typeahead/js/bootstrap-typeahead.js"></script>
@@ -27,15 +27,13 @@
   	<a class="brand">Tabber</a>
   	<ul class="nav pull-right">
   	  <li>
-  	    {{loginButtons}}
+  	    {{> loginButtons}}
   	  </li>
   	</ul>
       </div>
     </div>
   </div>
 
-
-<body>
   <button class="pull-right" id="hide_button"> Hide </button>
   {{>delete_stuff}}
   {{>main}}
@@ -80,7 +78,7 @@
       <div class="span6">
 	<div class="well">
 	  <h4 class="banner_signin">Sign in using Twitter or Facebook to start tracking your drinks</h4>
-	  {{loginButtons}}
+	  {{> loginButtons}}
 	</div>
       </div>
     </div>
@@ -114,10 +112,7 @@
   	</div>
   	<div class="col-md-7">
           <div class="list-group">
-  	    <thead>
-  	      <label class="control-label">Pick Your Poison</label>
-  	    </thead>
-	    
+  	      <label class="control-label">Drinks</label>
    	    {{>drink}}
 	    
   	    {{>drink_form}}
@@ -128,8 +123,8 @@
       </div>
     </div>
     <div class="container douche-container">
-      <table class="table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
-  	<tr>
+      <table class="table smaller ui-responsive table-stroke" border="1" cellpadding="1" data-role="table" data-mode="reflow">
+  	    <tr>
           <td>
             <label>Name</label>
           </td>
@@ -193,7 +188,7 @@
 	    </center>
 	    {{#each clients}}
 	    <center> 
-	      <label class="label"> {{drink-name}} </label>
+	      <label class="label"> {{drink_name}} </label>
 	    </center>
 	    {{/each}}
           </div>
@@ -219,25 +214,25 @@
           </td>
           <td>
 
-            <table class="table drink-table smaller" border="1" cellpadding="1" data-role="table" data-mode="reflow" class="ui-responsive table-stroke">
+            <table class="table drink-table smaller ui-responsive table-stroke" border="1" cellpadding="1" data-role="table" data-mode="reflow">
+		          {{#if drinks}}
               <tr>
-		{{#if drinks}}
-		<td>
+		            <td>
                   <label> Drink Name</label>
-		</td>
-		<td>
+		            </td>
+		            <td>
                   <label>Number</label>
-		</td>
-		<td>
+		            </td>
+		            <td>
                   <label>Price</label>
-		</td>
-		<td>
+		            </td>
+		            <td>
                   <label>Date</label>
-		</td>
+		            </td>
               </tr>
               <tbody>
-		{{#each drinks}}
-		<tr>
+		            {{#each drinks}}
+		            <tr>
                   <td>
                     {{name}}
                   </td>
@@ -250,8 +245,8 @@
                   <td>
                     {{day}}
                   </td>
-		</tr>
-		{{/each}}
+		            </tr>
+		            {{/each}}
               </tbody>
 	      {{/if}}
 	      {{#unless drinks}}
@@ -290,7 +285,6 @@
 	  <template name="client_form">
 	    <form id="client_form">
 	      <input autocomplete="off" class="typeahead form-control" name="client-name" type="text" placeholder="Type a name here">
-	      </input>
 	    </form>
 	  </template>
 	  
@@ -305,11 +299,11 @@
 	  </template>
 
 	  <template name="add_cash">
-	    <input type="text" class="{{hidden}}" placeholder="Number to add" id="add_cash"> </input>
+	    <input type="text" class="{{hidden}}" placeholder="Number to add" id="add_cash">
 	  </template>
 
 	  <template name="inc_price">
-	    <input type="text" class="{{hidden}}" placeholder="Increment Price By" id="inc_price"> </input>
+	    <input type="text" class="{{hidden}}" placeholder="Increment Price By" id="inc_price">
 	  </template>
 
 	  <template name="delete_stuff">

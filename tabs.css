@@ -128,6 +128,9 @@ button {
     border: solid #1f628d 2px;
 }
 
+.login-button{
+  background-color: #1f628d;
+}
 
 h1 *{
     /* color:black; */

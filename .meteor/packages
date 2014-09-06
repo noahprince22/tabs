@@ -6,6 +6,7 @@
 standard-app-packages
 insecure
 preserve-inputs
-accounts-ui
-accounts-twitter
+bootstrap-3
 accounts-facebook
+accounts-twitter
+accounts-ui-bootstrap-3
