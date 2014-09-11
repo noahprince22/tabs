@@ -9,7 +9,7 @@
   Drinks = new Meteor.Collection("drinks");
   Clients = new Meteor.Collection("clients");
 
-Meteor.absoluteUrl("/",{'rootUrl':"http://nprince-tabber.openshift.com/"});
+Meteor.absoluteUrl("/",{'rootUrl':"http://tabber.me.uk/"});
 if (Meteor.isClient) {
   var currentDay;
     Session.set('data-loaded',false);
